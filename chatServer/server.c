@@ -2,17 +2,18 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netdb.h>
+#include <pthread.h>
 #include <string.h>
 #include <stdbool.h>
-#include <pthread.h>
 
 #include <sys/select.h>
 
-struct Client
+typedef struct
 {
 	char name[20];
 	char currentRoom[20];
 	int socket;
+	int signedIn;
 
 }Client;
 
@@ -42,6 +43,19 @@ int main(int argc, char ** argv)
 	FD_ZERO(&fds);
 	FD_SET(serverFD, &fds);
 
+
+
+	//Initialize Client List
+	Client clientList[10];
+	int x = 0;
+	for(;x < 10; x++)
+	{
+		bzero(&clientList[x].name, sizeof(clientList[x].name)+1);
+		bzero(&clientList[x].currentRoom, sizeof(clientList[x].currentRoom)+1);
+		clientList[x].signedIn = 0;
+		clientList[x].socket = -1;
+	}
+
 	//start running server
 	listen(serverFD, 10);
 	while(1)
@@ -57,40 +71,59 @@ int main(int argc, char ** argv)
 			//if the serverFD is ready for I/O => We have an incoming client connection.
 			if(FD_ISSET(i, &cfds) && i == serverFD)
 			{
-				int sd = accept(serverFD, (struct sockaddr *)NULL, NULL);
-				FD_SET(sd, &fds);
-				printf("Client %d Accepted!\n",sd);
+				int clientSocket = accept(serverFD, (struct sockaddr *)NULL, NULL);
+				FD_SET(clientSocket, &fds);
 
-				/*CLIENT INIT TEST
-				struct Client client; 
-					bzero(&client.name, sizeof(client.name)+1);
-					bzero(&client.currentRoom, sizeof(client.currentRoom)+1);
-					snprintf(client.name,21,"%s","starkiller45");
-					printf("%s\n",client.name);
-					int x = 0;
-					for(;x < 21; x++)
-						printf("name[%d]:%c\n",x,client.name[x] == 0 ? '*' : client.name[x]);
-				*/
+				//CLIENT INIT
+				for(x = 0;x < 10; x++)
+				{
+					if(clientList[x].signedIn == 0)
+					{
+						clientList[x].signedIn = 1;
+						snprintf(clientList[x].name,21,"%s%d","guest",x);
+						snprintf(clientList[x].currentRoom,21,"%s","General");
+						clientList[x].socket = clientSocket;
+
+						printf("%s has joined the server.\n",clientList[x].name);
+						x = 11;
+					}//end if
+				}//end for	
+			}//end CLIENT ACCEPT / INITIALIZATION
+
 	
-			}		
 			//if any other file descriptor is ready, read their input & send something back.	
 			else if(FD_ISSET(i, &cfds))
 			{
 				//read the incoming data
 				//**NEEDS UPDATE FOR FULL SERVER**
-				char packet[283];
+
+				
+				char packet[1000];
 				int n = read(i, packet, sizeof(packet));
 
+				//get Current Client Structure
+				Client* currentClient;
+				for(x = 0; x < 10; x++)
+					if(clientList[x].socket == i)
+						currentClient = &clientList[x];
+
+				//end get current client
+
+				//IF Client Disconnects
 				if(n == 0)
 				{
-					printf("Client #%d Disconnected.\n",i);
+					printf("%s disconnected...\n",currentClient->name);
+					bzero(&currentClient->name, sizeof(currentClient->name)+1);
+					bzero(&currentClient->currentRoom, sizeof(currentClient->currentRoom)+1);
+					currentClient->signedIn = 0;
+					currentClient->socket = -1;
 					FD_CLR(i,&fds);				
-				}
+				}//end client disconnection
+
 				else
 				{
 					packet[n] = '\0';
-					int x;
-					printf("From Client #%d: ",i);
+					printf("%s: ",currentClient->name);
 
 					//THIS IS WHERE YOU SEND THE PACKET TO THE SWITCH!!!
 					switch(packet[0])
@@ -125,6 +158,10 @@ int main(int argc, char ** argv)
 						case 'm'	:	//UNUSED
 									break;
 						case 'n'	:	//name registration
+									
+
+
+
 									break;
 						case 'o'	:	//UNUSED
 									break;
@@ -189,9 +226,8 @@ int main(int argc, char ** argv)
 	//
 	//
 	//}//end for
-	//return;
+	return;
 }//end main
-
 
 
 
