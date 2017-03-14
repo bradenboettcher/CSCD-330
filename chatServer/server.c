@@ -2,9 +2,9 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netdb.h>
-#include <pthread.h>
 #include <string.h>
 #include <stdbool.h>
+#include <pthread.h>
 
 #include <sys/select.h>
 
