@@ -98,7 +98,7 @@ int main(int argc, char ** argv)
 				//**NEEDS UPDATE FOR FULL SERVER**
 
 				
-				char packet[1000];
+				char packet[262173];
 				int n = read(i, packet, sizeof(packet));
 
 				//get Current Client Structure
@@ -158,7 +158,13 @@ int main(int argc, char ** argv)
 						case 'm'	:	//UNUSED
 									break;
 						case 'n'	:	//name registration
-									
+									if(packet[1] == '\0')
+									{
+										//send error back to client
+										//write(currentClient->socket,newPacket,strlen(writes));
+									}
+									for(x = 1; x < 21; x++)
+										currentClient->name[x-1] = packet[x];
 
 
 
