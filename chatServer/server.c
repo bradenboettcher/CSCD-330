@@ -63,10 +63,10 @@ int main(int argc, char ** argv)
 		//reset cfds (select modifies it)
 		cfds = fds;
 		int i, fd;
-		select(10, &cfds, (fd_set*)0,0,0);
+		select(14, &cfds, (fd_set*)0,0,0);
 
 		//if a file descriptor is ready for I/O
-		for(i = 0; i < 10; i++)
+		for(i = 0; i < 14; i++)
 		{
 			//if the serverFD is ready for I/O => We have an incoming client connection.
 			if(FD_ISSET(i, &cfds) && i == serverFD)
@@ -84,8 +84,8 @@ int main(int argc, char ** argv)
 						snprintf(clientList[x].currentRoom,21,"%s","General");
 						clientList[x].socket = clientSocket;
 
-						printf("%s has joined the server.\n",clientList[x].name);
-						x = 11;
+						printf("%s has joined the server with socket: %d.\n",clientList[x].name,clientSocket);
+						break;
 					}//end if
 				}//end for	
 			}//end CLIENT ACCEPT / INITIALIZATION
@@ -98,7 +98,7 @@ int main(int argc, char ** argv)
 				//**NEEDS UPDATE FOR FULL SERVER**
 
 				
-				char packet[1000];
+				char packet[262173], outgoingPacket[262173];
 				int n = read(i, packet, sizeof(packet));
 
 				//get Current Client Structure
@@ -117,7 +117,9 @@ int main(int argc, char ** argv)
 					bzero(&currentClient->currentRoom, sizeof(currentClient->currentRoom)+1);
 					currentClient->signedIn = 0;
 					currentClient->socket = -1;
-					FD_CLR(i,&fds);				
+					FD_CLR(i,&fds);
+					FD_CLR(i,&cfds);
+					close(i);				
 				}//end client disconnection
 
 				else
@@ -125,7 +127,7 @@ int main(int argc, char ** argv)
 					packet[n] = '\0';
 					printf("%s: ",currentClient->name);
 
-					//THIS IS WHERE YOU SEND THE PACKET TO THE SWITCH!!!
+					//THIS IS WHERE YOU SEND THE packet TO THE SWITCH!!!
 					switch(packet[0])
 					{
 						case 'a'	:	//UNUSED
@@ -138,7 +140,17 @@ int main(int argc, char ** argv)
 						case 'c'	:	//command list//commands.commandList(i);
 									break;
 						case 'd'	:	//commands.disconnect(i);
+									write(i,packet,262173);
+									printf("%s disconnected...\n",currentClient->name);
+									bzero(&currentClient->name, sizeof(currentClient->name)+1);
+									bzero(&currentClient->currentRoom, sizeof(currentClient->currentRoom)+1);
+									currentClient->signedIn = 0;
+									currentClient->socket = -1;
+									FD_CLR(i,&fds);
+									FD_CLR(i,&cfds);
+									close(i);									
 									break;
+
 						case 'e'	:	//commands.exitRoom(i);
 									break;
 						case 'f'	:	//commands.pFile(clinetList,packet);private file
@@ -158,7 +170,13 @@ int main(int argc, char ** argv)
 						case 'm'	:	//UNUSED
 									break;
 						case 'n'	:	//name registration
-									
+									if(packet[1] == '\0')
+									{
+										//send error back to client
+										//write(currentClient->socket,newpacket,strlen(writes));
+									}
+									for(x = 1; x < 21; x++)
+										currentClient->name[x-1] = packet[x];
 
 
 
@@ -200,32 +218,14 @@ int main(int argc, char ** argv)
 						//**NEEDS UPDATE FOR FULL SERVER**
 						//write(i,"HELLO!\n", sizeof("HELLO!\n"));
 
-					//CLEAR OUT PACKET BUFFER
+					//CLEAR OUT packet BUFFER
 					for(x = 0; x < 284; x++)
 						packet[x] = '\0';
-				}
+				}//end else (read/write for client)
 
-			}//end if
-		}//end for
+			}//end if (if a client connects/is ready for i/o)
+		}//end for (if a file descriptor is ready for i/o)
 	}//end while (keep server running indefinitely)
-
-	//fd_set fds, cfds;
-	//FD_ZERO(&fds);
-	//long int [256] array;
-
-	//FD_SET(serverfd, &fds);
-
-	//listen(serverfd, 8);
-	//for(;;)
-	//{
-	//	cfds = fds;
-	//	FD_SET(accept(serverfd, (struct sockaddr *) NULL, NULL), &fds)
-	//	select(10, &cfds, (fd.set*)0, 0, 0);
-	//	
-	//	
-	//
-	//
-	//}//end for
 	return;
 }//end main
 
