@@ -113,27 +113,32 @@ int main(int argc, char **argv) {
     //because the null bytes '\0' filling the rest of the OPTION field will terminate the string.
 
     while (!threadFinished) {
-//        bzero(&command, sizeof(command) + 1);
-//        bzero(&option, sizeof(option) + 1);
+        //       bzero(&command, sizeof(command) + 1);
+        //       bzero(&option, sizeof(option) + 1);
 //        bzero(&size, sizeof(size) + 1);
 //        bzero(&content, sizeof(content) + 1);
 //        bzero(&packet, sizeof(packet));
 
         int x;
 
-        int i = 0;
-        command[i] = '\0';
-        for (; i <= sizeof(option); i++) {
-            option[i] = '\0';
+        int i;
+        command[i] = ' ';
+        for (i = 0; i < sizeof(option); i++) {
+            option[i] = ' ';
+            //puts("option zeroed");
         }
-        for (; i <= sizeof(size); i++) {
-            size[i] = '\0';
+
+        for (i = 0; i < sizeof(size); i++) {
+            size[i] = ' ';
         }
-//        for (; i < sizeof(content); i++)
+
+//        for (i = 0; i < sizeof(content); i++)
 //            content[i] = '\0';
-        for (; i <= sizeof(packet); i++) {
-            packet[i] = '\0';
-        }
+//        for (i = 0; i < sizeof(packet); i++) {
+//            packet[i] = '\0';
+//        }
+        bzero(&content, sizeof(content));
+        bzero(&packet, sizeof(packet) + 1);
 
 
         char writes[262155];
@@ -194,6 +199,8 @@ int main(int argc, char **argv) {
                     break;
 
                 default        :
+                    printf("%c%c Is not a valid command. Type /c for list of current commands\n", writes[0], writes[1]);
+                    command[0] = 'z';
                     break;
             }
         } else {
@@ -216,32 +223,30 @@ int main(int argc, char **argv) {
             //puts(packet);
         }
 
-        puts("end else");
-
-        //content 262144
-        packet[0] = command[0];
-        for (x = 1; x < 21; x++) {
-            if (option[x - 1] == '\0')
-                packet[x] = '\0';
-            else
+/////////////////////////////////////////BUILDING PACKET//////
+        if (command[0] != 'z') {
+            //content 262144
+            packet[0] = command[0];
+            for (x = 1; x < 21; x++) {
                 packet[x] = option[x - 1];
-        }
-        //SIZE -> packet[21 - 29]
-        for (x = 21; x < 29; x++) {
-            if (size[x - 21] == '\0')
-                packet[x] = '\0';
-            else
+            }
+            //SIZE -> packet[21 - 29]
+            for (x = 21; x < 29; x++) {
                 packet[x] = size[x - 21];
-        }
-        //CONTENT -> packet[29 - 284]
-        for (x = 29; x < 262115; x++) {
+            }
+            //CONTENT -> packet[29 - 284]
+            for (x = 29; x < 262115; x++) {
 
-            packet[x] = content[x - 29];
+                packet[x] = content[x - 29];
+            }
+            puts("PACKET");
+            for (x = 0; x < 1000; x++) {
+                printf("%c", packet[x]);
+            }
+            printf("packetlength: %d\n", strlen(packet));
+            printf("messagelength: %d\n", strlen(packet) - 30);
         }
-        puts("PACKET");
-        for (x = 0; x < 1000; x++) {
-            printf("%c", packet[x]);
-        }
+
         // write(sockfd, packet, strlen(packet));
     }
 
