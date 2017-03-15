@@ -14,15 +14,15 @@ bool threadFinished = 0;
 void *readThread(int *sockfd) {
     int ret;
     while (1) {
-        char reads[1000];
+        char reads[262173];
         ret = read(*sockfd, reads, sizeof(reads));
-        if (ret > 0) {
-            reads[ret] = '\0';
-            printf("SERVER: %s", reads);
-        } else if (ret == 0) {
+        if (reads[0] == 'd') {
             printf("SERVER DISCONNECTED...\nProgram Exiting...\n");
             threadFinished = 1;
             return NULL;
+        } else if (ret > 0) {
+            reads[ret] = '\0';
+            printf("SERVER: %s", reads);
         }
     }//end while
 }//end readThread
@@ -123,18 +123,24 @@ int main(int argc, char **argv) {
 
         int i = 0;
         command[i] = '\0';
-        for (; i < sizeof(option); i++)
+        for (; i <= sizeof(option); i++) {
             option[i] = '\0';
-        for (; i < sizeof(size); i++)
+        }
+        for (; i <= sizeof(size); i++) {
             size[i] = '\0';
-        for (; i < sizeof(content); i++)
-            content[i] = '\0';
-        for (; i < sizeof(packet); i++)
+        }
+//        for (; i < sizeof(content); i++)
+//            content[i] = '\0';
+        for (; i <= sizeof(packet); i++) {
             packet[i] = '\0';
+        }
 
 
         char writes[262155];
         fgets(writes, 262155, stdin);
+
+
+        char *p = packet;
 
         if (writes[0] == '/') {
             switch (writes[1]) {
@@ -190,16 +196,22 @@ int main(int argc, char **argv) {
                 default        :
                     break;
             }
-        }
-        else {
+        } else {
             int u;
             puts("else");
             command[0] = 'r';
             puts("filled command");
+
             for (u = 0; u < sizeof(writes); u++) {
-               // printf("%d\n", u);
+                // printf("%d\n", u);
                 content[u] = writes[u];
             }
+
+
+            printf("command: %s\n", command);
+            printf("option: %s\n", option);
+            printf("size: %s\n", size);
+            printf("Content: %s\n", content);
             puts("filled content");
             //puts(packet);
         }
@@ -208,18 +220,26 @@ int main(int argc, char **argv) {
 
         //content 262144
         packet[0] = command[0];
-        for (x = 1; x < 21; x++)
-            packet[x] = option[x - 1];
+        for (x = 1; x < 21; x++) {
+            if (option[x - 1] == '\0')
+                packet[x] = '\0';
+            else
+                packet[x] = option[x - 1];
+        }
         //SIZE -> packet[21 - 29]
-        for (x = 21; x < 29; x++)
-            packet[x] = size[x - 21];
+        for (x = 21; x < 29; x++) {
+            if (size[x - 21] == '\0')
+                packet[x] = '\0';
+            else
+                packet[x] = size[x - 21];
+        }
         //CONTENT -> packet[29 - 284]
-        for (x = 29; x < 262115; x++)
-            packet[x] = content[x - 29];
+        for (x = 29; x < 262115; x++) {
 
+            packet[x] = content[x - 29];
+        }
         puts("PACKET");
-        for(x = 0; x<1000; x++)
-        {
+        for (x = 0; x < 1000; x++) {
             printf("%c", packet[x]);
         }
         // write(sockfd, packet, strlen(packet));
