@@ -145,9 +145,11 @@ int main(int argc, char **argv) {
         fgets(writes, 262155, stdin);
 
 
-        char *p = packet;
+
+
 
         if (writes[0] == '/') {
+            command[0] = writes[1];
             switch (writes[1]) {
                 case 'b'    :
                     command[0] = 'b';
@@ -198,12 +200,16 @@ int main(int argc, char **argv) {
                     command[0] = 'w';//Whisper
                     break;
 
+
+/////////////////////////////////////////////Invalid Command - should be on server
                 default        :
                     printf("%c%c Is not a valid command. Type /c for list of current commands\n", writes[0], writes[1]);
                     command[0] = 'z';
                     break;
             }
-        } else {
+        }
+        /////////////////////////////////////No Command Given//////////////////////
+        else {
             int u;
             puts("else");
             command[0] = 'r';
@@ -220,10 +226,10 @@ int main(int argc, char **argv) {
             printf("size: %s\n", size);
             printf("Content: %s\n", content);
             puts("filled content");
-            //puts(packet);
+
         }
 
-/////////////////////////////////////////BUILDING PACKET//////
+/////////////////////////////////////////BUILDING PACKET///////////////////////////////
         if (command[0] != 'z') {
             //content 262144
             packet[0] = command[0];
@@ -240,13 +246,14 @@ int main(int argc, char **argv) {
                 packet[x] = content[x - 29];
             }
             puts("PACKET");
+            //puts(packet);
             for (x = 0; x < 1000; x++) {
                 printf("%c", packet[x]);
             }
-            printf("packetlength: %d\n", strlen(packet));
-            printf("messagelength: %d\n", strlen(packet) - 30);
+            printf("packetlength: %d\n", (int)strlen(packet));
+            printf("messagelength: %d\n", (int)strlen(packet) - 30);
         }
-
+//////////////////////////////////////PACKET BUILT//////////////////////////////////////
         // write(sockfd, packet, strlen(packet));
     }
 
