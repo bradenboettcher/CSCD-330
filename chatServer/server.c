@@ -46,6 +46,10 @@ int main(int argc, char ** argv)
 	FD_SET(serverFD, &fds);
 
 
+	//Initialize Room Names
+	char room1[2] = "X";
+	char room2[2] = "Y";
+	char room3[2] = "1";
 
 	//Initialize Client List
 	Client clientList[10];
@@ -70,6 +74,16 @@ int main(int argc, char ** argv)
 
 		//get packet ready.
 		char packet[262173], outgoingPacket[262173];
+		char command[1];
+		char option[20];
+		char size[8];
+		char content[262144];
+
+		bzero(&command, sizeof(command)+1);
+		bzero(&option, sizeof(option)+1);
+		bzero(&size, sizeof(size)+1);
+		bzero(&content, sizeof(content)+1);
+
 		for(x = 0; x < 262173; x++)
 			packet[x] = '\0';
 		
@@ -140,11 +154,26 @@ int main(int argc, char ** argv)
 						case 'a'	:	//UNUSED
 									break;
 						case 'b'	:	printf("Broadcast\n");
+									for(x = 0;x < 20; x++)
+										packet[x+1] = currentClient->name[x];
+									for(x = 0; x < 10; x++)
+										if(clientList[x].signedIn)
+											write(clientList[x].socket,packet,sizeof(packet));
+
 									/*1: use socketID "i" to find sender's name in client list, put it in option field.
 									  2: build packet [originalCommand][**sender'sName**][originalSize][originalMessage]
 									  3: send new packet to all clients in list (except sender) */
 									break;
 						case 'c'	:	//command list//commands.commandList(i);
+									
+									
+
+
+
+
+
+
+
 									break;
 						case 'd'	:	//commands.disconnect(i);
 									write(i,packet,262173);
@@ -230,6 +259,28 @@ int main(int argc, char ** argv)
 											write(clientList[x].socket,packet,sizeof(packet));
 									break;
 						case 's'	:	//switch rooms
+									switch(packet[1])
+									{
+										case 'X' : currentClient->currentRoom = 1;
+											   snprintf(option,sizeof(option)+1,"SERVER");
+											   snprintf(content,sizeof(content)+1,"You have switched to room 'X'.");
+											   break;
+										case 'Y' : currentClient->currentRoom = 2;
+	  										   snprintf(option,sizeof(option)+1,"SERVER");
+											   snprintf(content,sizeof(content)+1,"You have switched to room 'Y'.");
+										           break;
+										case '1' : currentClient->currentRoom = 3;
+	   										   snprintf(option,sizeof(option)+1,"SERVER");
+											   snprintf(content,sizeof(content)+1,"You have switched to room '1'.");
+											   break;
+										default	 : snprintf(content,sizeof(content)+1, "Valid rooms are: 'X', 'Y', and '1'.");
+									}			
+									for(x = 1; x < 21; x++)
+										packet[x] = option[x-1];
+									for(x = 29; x < sizeof(packet); x++)
+										packet[x] = content[x-29];
+									write(currentClient->socket,packet,sizeof(packet));
+					
 									break;
 						case 't'	:	//UNUSED
 									break;
