@@ -156,9 +156,6 @@ int main(int argc, char **argv) {
                     for (x = 0; x < 24 && writes[x + 3] != ' '; x++)
                         option[x] = writes[x + 3];
 
-
-                    puts(option);
-                    printf("option: %s\n", option);
                     // leaves at space after name
                     int y = x += 4;
 
@@ -191,9 +188,9 @@ int main(int argc, char **argv) {
             /////////////////////////////////////No Command Given//////////////////////
         else {
             int u;
-            puts("else");
+
             command[0] = 'r';
-            puts("filled command");
+
 
             for (u = 0; u < sizeof(writes); u++) {
                 content[u] = writes[u];
@@ -238,17 +235,13 @@ int main(int argc, char **argv) {
                     packet[x] = content[x - 29];
             }
 
-            for (x = 0; x < 262173; x++) {
-                printf("%c", packet[x]);
-            }
+//            for (x = 0; x < 262173; x++) {/////////////////////////////////////////PACKET PRINT
+//                printf("%c", packet[x]);
+//            }
 
         }//end If
 //////////////////////////////////////PACKET BUILT//////////////////////////////////////
         write(sockfd, packet, sizeof(packet));
-        bzero(&command, sizeof(command) + 1);
-        bzero(&option, sizeof(option) + 1);
-        bzero(&size, sizeof(size) + 1);
-        bzero(&content, sizeof(content) + 1);
 
 
     }
