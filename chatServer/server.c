@@ -164,16 +164,30 @@ int main(int argc, char ** argv)
 									  2: build packet [originalCommand][**sender'sName**][originalSize][originalMessage]
 									  3: send new packet to all clients in list (except sender) */
 									break;
-						case 'c'	:	//command list//commands.commandList(i);
+						case 'c'	:	printf("COMMAND LIST:::\n");
+									snprintf(option,sizeof(option)+1,"SERVER");
+									snprintf(content,sizeof(content)+1, "--COMMAND LIST--\ncommand - description : usage\n"
+													    "/b - Broadcast: /b message to broadcast\n"
+													    "/c - Command List: /c\n"
+													    "/d - Disconnect: /d\n"
+													    "/e - Exit Room and return to general chat: /e\n"
+													    "/f - Send File to specific user: /f username FILEPATH\n"
+													    "/g - Send File to Room: /f FILEPATH\n"
+													    "/h - List of users in current room: /h\n"
+													    "/l - List all users in all rooms: /l\n"
+													    "/n - Name registration: /n NewName\n"
+													    "/r - Send message to current room: /r message\n"
+													    "/s - Switch rooms: '/s RoomName' OR just '/s' to see a list of rooms\n"
+													    "/w - Whisper: /w nameToWhisperTo message to send\n");
+
 									
-									
 
 
-
-
-
-
-
+									for(x = 1; x < 21; x++)
+										packet[x] = option[x-1];
+									for(x = 29; x < sizeof(packet); x++)
+										packet[x] = content[x-29];
+									write(currentClient->socket,packet,sizeof(packet));
 									break;
 						case 'd'	:	//commands.disconnect(i);
 									write(i,packet,262173);
@@ -202,6 +216,18 @@ int main(int argc, char ** argv)
 						case 'k'	:	//UNUSED
 									break;
 						case 'l'	:	//list all users in all rooms
+									/*snprintf(content,sizeof(content)+1,"List of Users:\n %s%s%s%s%s%s%s%s%s%s",
+															clientList[0].name+"\n",
+															clientList[1].name+"\n",
+															clientList[2].name+"\n",
+															clientList[3].name+"\n",
+															clientList[4].name+"\n",
+															clientList[5].name+"\n",
+															clientList[6].name+"\n",
+															clientList[7].name+"\n",
+															clientList[8].name+"\n",
+															clientList[9].name+"\n");
+									write(currentClient->socket,packet,sizeof(packet));*/
 									break;
 						case 'm'	:	//UNUSED
 									break;
@@ -271,7 +297,8 @@ int main(int argc, char ** argv)
 	   										   snprintf(option,sizeof(option)+1,"SERVER");
 											   snprintf(content,sizeof(content)+1,"You have switched to room '1'.");
 											   break;
-										default	 : snprintf(content,sizeof(content)+1, "Valid rooms are: 'X', 'Y', and '1'.");
+										default	 : snprintf(option,sizeof(option)+1,"SERVER");
+											   snprintf(content,sizeof(content)+1, "Valid rooms are: 'X', 'Y', and '1'.");
 									}			
 									for(x = 1; x < 21; x++)
 										packet[x] = option[x-1];
@@ -300,21 +327,6 @@ int main(int argc, char ** argv)
 												packet[y] = currentClient->name[y-1];
 											write(clientList[x].socket,packet,sizeof(packet));
 										}
-										/*int same = 1;
-										
-										for(y = 0; y < 20 && same; y++)//if the client name == the option field
-										{
-											if(packet[y+1] != clientList[x].name[y]);
-											{
-												same = 0;
-											}
-										}
-										if(same)
-										{
-											for(y = 1; y < 21; x++)
-												packet[y] = clientList[x].name[y-1];
-											write(clientList[x].socket,packet,sizeof(packet));
-										}*/
 									}									
 									write(i,packet,sizeof(packet));//echo Whisper
 									break;
