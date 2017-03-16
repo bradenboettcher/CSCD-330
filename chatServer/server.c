@@ -50,6 +50,7 @@ int main(int argc, char ** argv)
 	char room1[2] = "X";
 	char room2[2] = "Y";
 	char room3[2] = "1";
+	char room4[6]= "Lobby";
 
 	//Initialize Client List
 	Client clientList[10];
@@ -243,6 +244,15 @@ int main(int argc, char ** argv)
 									for(x=0;x<10;x++){
 										if(clientList[x].name[0]!='\0'){
 											strcat(content, clientList[x].name);
+											strcat(content, " is in room: ");
+											if(clientList[x].currentRoom==1)
+												strcat(content, "X");
+											else if(clientList[x].currentRoom==2)
+												strcat(content, "Y");
+											else if(clientList[x].currentRoom==3)
+												strcat(content, "1");
+											else
+												strcat(content, "Lobby");
 											strcat(content, "\n");
 										}
 									}
