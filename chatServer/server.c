@@ -286,11 +286,21 @@ int main(int argc, char ** argv)
 									break;
 						case 'v'	:	//UNUSED
 									break;
-						case 'w'	:	printf("Whisper\n");
+						case 'w'	:	//printf("Whisper\n");
+									for(x = 1; x < 21; x++)
+										option[x-1] = packet[x];
+
 									for(x = 0; x < 10; x++)//for each client in the list
 									{
-										int same = 1;
-										int y;
+										if(strcmp(option,clientList[x].name)
+										{
+											int y;
+											for(y = 1; y < 21; x++)
+												packet[y] = currentClient->name[y-1];
+											write(clientList[x].socket,packet,sizeof(packet));
+										}
+										/*int same = 1;
+										
 										for(y = 0; y < 20 && same; y++)//if the client name == the option field
 										{
 											if(packet[y+1] != clientList[x].name[y]);
@@ -303,9 +313,9 @@ int main(int argc, char ** argv)
 											for(y = 1; y < 21; x++)
 												packet[y] = clientList[x].name[y-1];
 											write(clientList[x].socket,packet,sizeof(packet));
-										}
+										}*/
 									}									
-									write(i,packet,sizeof(packet));//Whisper
+									write(i,packet,sizeof(packet));//echo Whisper
 									break;
 						case 'x'	:	//UNUSED
 									break;
