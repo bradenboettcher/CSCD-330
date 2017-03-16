@@ -16,28 +16,25 @@ void *readThread(int *sockfd) {
     int ret, x;
     while (1) {
         char reads[262173];
-	bzero(&reads,sizeof(reads));
+        bzero(&reads, sizeof(reads));
         ret = read(*sockfd, reads, sizeof(reads));
         if (reads[0] == 'd') {
             printf("SERVER DISCONNECTED...\nProgram Exiting...\n");
             threadFinished = 1;
             return NULL;
-        }else if (ret > 0)
-	{
-		reads[ret] = '\0';
-		for(x = 1; x < 21; x++)
-		{
-			printf("%c",reads[x]);
-		}
-		printf(": ");
-		for(x = 29; x < sizeof(reads); x++)
-		{
-			printf("%c",reads[x]);
-		}		
-		printf("\n");
-		ret = 0;
-	}
-        
+        } else if (ret > 0) {
+            reads[ret] = '\0';
+            for (x = 1; x < 21; x++) {
+                printf("%c", reads[x]);
+            }
+            printf(": ");
+            for (x = 29; x < sizeof(reads); x++) {
+                printf("%c", reads[x]);
+            }
+            printf("\n");
+            ret = 0;
+        }
+
     }//end while
 }//end readThread
 
@@ -78,75 +75,31 @@ int main(int argc, char **argv) {
     char content[262144];
     char packet[262173]; //the packet size will be the command + option + size + content (which will be the MAX size of a file).
 
-    //NULL OUT FIELDS
-//    int i = 0;
-//    command[i] = '\0';
-//    for (; i < sizeof(option); i++)
-//        option[i] = '\0';
-//    for (; i < sizeof(size); i++)
-//        size[i] = '\0';
-//    for (; i < sizeof(content); i++)
-//        content[i] = '\0';
-//    for (; i < sizeof(packet); i++)
-//        packet[i] = '\0';
+    char room1[2] = "X";
 
-//    //COMMAND
-//    command[0] = 'w'; //the command char parsed out of the user input
-//    //OPTION
-//    snprintf(option, 21, "%s", "starkiller45"); //the option parsed out of the user input
-//    //SIZE
-//    snprintf(size, 9, "%d", 100000); //the sizeof(the remaining message the user sent)
-//    //CONTENT
-//    snprintf(content, 257, "%s", "This is my first sent message!\n"); //the message
-
-
-//    int x;
-//    //COMMAND -> packet[0]
-//    packet[0] = command[0];
-//
-//    //OPTION -> packet[1 - 20]
-//    for (x = 1; x < 21; x++)
-//        packet[x] = option[x - 1];
-//    //SIZE -> packet[21 - 29]
-//    for (x = 21; x < 29; x++)
-//        packet[x] = size[x - 21];
-//    //CONTENT -> packet[29 - 284]
-//    for (x = 29; x < 284; x++)
-//        packet[x] = content[x - 29];
-
-    //SHOW PACKET CONTENTS
-    //printf("\n");
-    //for(x = 0; x < 284; x++)
-    //	printf("packet[%d]:%c\n",x,packet[x] == 0 ? '*' : packet[x]);
-    //NULLS: '\0' (aka the null terminating byte for strings)
-    //are represented here by the '*' character, and the \n character
-    //will print out a new line.
-
-    //write(sockfd, packet, 283);
-    //NOTE: printing out the packet as a STRING will result in: wstarkiller45
-    //because the null bytes '\0' filling the rest of the OPTION field will terminate the string.
-
-    while (!threadFinished) 
-    {
-          bzero(&command, sizeof(command) + 1);
-          bzero(&option, sizeof(option) + 1);
-          bzero(&size, sizeof(size) + 1);
-          bzero(&content, sizeof(content) + 1);
-          bzero(&packet, sizeof(packet) + 1);
+    while (!threadFinished) {
+        bzero(&command, sizeof(command) + 1);
+        bzero(&option, sizeof(option) + 1);
+        bzero(&size, sizeof(size) + 1);
+        bzero(&content, sizeof(content) + 1);
+        bzero(&packet, sizeof(packet) + 1);
 
         int x;
 
         char writes[262173];
-	bzero(&writes,sizeof(writes));
+        bzero(&writes, sizeof(writes));
         fgets(writes, 262173, stdin);
 
-        if (writes[0] == '/')
-	{
-                command[0] = writes[1];
-                switch (writes[1])
-		{
+        if (writes[0] == '/') {
+            int u;
+            //command[0] = writes[1];
+            switch (writes[1]) {
                 case 'b'    :
                     command[0] = 'b';
+
+                    for (u = 0; u < sizeof(writes) - 3; u++) {
+                        content[u] = writes[u + 3];
+                    }
                     break;
 
                 case 'c'    :
@@ -178,16 +131,20 @@ int main(int argc, char **argv) {
 
                 case 'n'    :
                     command[0] = 'n';//name registration
+                    for (x = 0; x < 21; x++)
+                        option[x] = writes[x + 2];
                     break;
 
                 case 'r'    :
-                    command[0] = 'r';
-                    for (x = 1; x < sizeof(writes) - 2; x++)
-                        content[x] = writes[x + 2];//explicitly send message to room
+                    command[0] = 'r'; //explicitly send message to room
+                    for (x = 0; x < sizeof(writes) - 2; x++)
+                        content[x] = writes[x + 2];
                     break;
 
                 case 's'    :
                     command[0] = 's';//switch rooms
+                    for (x = 0; x < 21; x++)
+                        option[x] = writes[x + 2];
                     break;
 
                 case 'w'    :
@@ -202,7 +159,7 @@ int main(int argc, char **argv) {
                     break;
             }
         }
-        /////////////////////////////////////No Command Given//////////////////////
+            /////////////////////////////////////No Command Given//////////////////////
         else {
             int u;
             puts("else");
@@ -224,8 +181,7 @@ int main(int argc, char **argv) {
         }
 
 /////////////////////////////////////////BUILDING PACKET///////////////////////////////
-        if (command[0] != 'z') 
-	{
+        if (command[0] != 'z') {
             //content 262144
             packet[0] = command[0];
             for (x = 1; x < 21; x++) {
@@ -236,29 +192,26 @@ int main(int argc, char **argv) {
                 packet[x] = size[x - 21];
             }
             //CONTENT -> packet[29 - 284]
-            for (x = 29; x < 262144; x++)
-	    {
-		if(content[x - 29] == '\n')
-			packet[x] = '\0';
-		else
-                	packet[x] = content[x - 29];
+            for (x = 29; x < 262144; x++) {
+                if (content[x - 29] == '\n')
+                    packet[x] = '\0';
+                else
+                    packet[x] = content[x - 29];
             }
             puts("PACKET");
             //puts(packet);
             for (x = 0; x < 262173; x++) {
                 printf("%c", packet[x]);
             }
-            printf("packetlength: %d\n", (int)strlen(packet));
-            printf("messagelength: %d\n", (int)strlen(packet) - 30);
+            printf("packetlength: %d\n", (int) strlen(packet));
+            printf("messagelength: %d\n", (int) strlen(packet) - 30);
         }//end If
 //////////////////////////////////////PACKET BUILT//////////////////////////////////////
         write(sockfd, packet, sizeof(packet));
-	bzero(&command,sizeof(command)+1);
-	bzero(&option,sizeof(option)+1);
-	bzero(&size,sizeof(size)+1);
-	bzero(&content,sizeof(content)+1);
-
-
+        bzero(&command, sizeof(command) + 1);
+        bzero(&option, sizeof(option) + 1);
+        bzero(&size, sizeof(size) + 1);
+        bzero(&content, sizeof(content) + 1);
 
 
     }
