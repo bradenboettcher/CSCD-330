@@ -292,7 +292,7 @@ int main(int argc, char ** argv)
 
 									for(x = 0; x < 10; x++)//for each client in the list
 									{
-										if(strcmp(option,clientList[x].name)
+										if(strcmp(option,clientList[x].name))
 										{
 											int y;
 											for(y = 1; y < 21; x++)
