@@ -30,6 +30,12 @@ int main(int argc, char ** argv)
 	int serverFD, ret;
 	int port = atoi(argv[1]);
 	struct sockaddr_in serverAddr;
+
+    char* rooms[4];
+    rooms[0] = "Lobby";
+    rooms[1] = "X";
+    rooms[2] = "Y";
+    rooms[3] = "1";
 	
 
 	//setup server socket (serverFD)
@@ -240,10 +246,11 @@ int main(int argc, char ** argv)
 						case 'l'	:	//list all users in all rooms
 									snprintf(option, sizeof(option)+1, "SERVER"); 
 									snprintf(content,sizeof(content)+1, "%s", "\nUsers:\n");
+                                    char temp[40];
 									for(x=0;x<10;x++){
 										if(clientList[x].name[0]!='\0'){
-											strcat(content, clientList[x].name);
-											strcat(content, "\n");
+                                            sprintf(temp,"%s is in room: %s\n", clientList[x].name, rooms[clientList[x].currentRoom]);
+                                            strcat(content,temp);
 										}
 									}
 									
