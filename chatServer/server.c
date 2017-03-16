@@ -36,7 +36,7 @@ int main(int argc, char ** argv)
     rooms[1] = "X";
     rooms[2] = "Y";
     rooms[3] = "1";
-	
+
 
 	//setup server socket (serverFD)
 	serverFD = socket(AF_INET, SOCK_STREAM, 0);
