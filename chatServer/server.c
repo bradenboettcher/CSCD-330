@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netdb.h>
@@ -11,7 +13,7 @@
 typedef struct
 {
 	char name[20];
-	char currentRoom[20];
+	int currentRoom;
 	int socket;
 	int signedIn;
 
@@ -51,7 +53,7 @@ int main(int argc, char ** argv)
 	for(;x < 10; x++)
 	{
 		bzero(&clientList[x].name, sizeof(clientList[x].name)+1);
-		bzero(&clientList[x].currentRoom, sizeof(clientList[x].currentRoom)+1);
+		clientList[x].currentRoom = -1;
 		clientList[x].signedIn = 0;
 		clientList[x].socket = -1;
 	}
@@ -64,6 +66,13 @@ int main(int argc, char ** argv)
 		cfds = fds;
 		int i, fd;
 		select(14, &cfds, (fd_set*)0,0,0);
+
+
+		//get packet ready.
+		char packet[262173], outgoingPacket[262173];
+		for(x = 0; x < 262173; x++)
+			packet[x] = '\0';
+		
 
 		//if a file descriptor is ready for I/O
 		for(i = 0; i < 14; i++)
@@ -81,7 +90,7 @@ int main(int argc, char ** argv)
 					{
 						clientList[x].signedIn = 1;
 						snprintf(clientList[x].name,21,"%s%d","guest",x);
-						snprintf(clientList[x].currentRoom,21,"%s","General");
+						clientList[x].currentRoom = 0;
 						clientList[x].socket = clientSocket;
 
 						printf("%s has joined the server with socket: %d.\n",clientList[x].name,clientSocket);
@@ -97,9 +106,7 @@ int main(int argc, char ** argv)
 				//read the incoming data
 				//**NEEDS UPDATE FOR FULL SERVER**
 
-				
-				char packet[262173], outgoingPacket[262173];
-				int n = read(i, packet, sizeof(packet));
+				int n = read(i, packet, 262173);
 
 				//get Current Client Structure
 				Client* currentClient;
@@ -114,7 +121,7 @@ int main(int argc, char ** argv)
 				{
 					printf("%s disconnected...\n",currentClient->name);
 					bzero(&currentClient->name, sizeof(currentClient->name)+1);
-					bzero(&currentClient->currentRoom, sizeof(currentClient->currentRoom)+1);
+					currentClient->currentRoom = -1;
 					currentClient->signedIn = 0;
 					currentClient->socket = -1;
 					FD_CLR(i,&fds);
@@ -124,8 +131,8 @@ int main(int argc, char ** argv)
 
 				else
 				{
-					packet[n] = '\0';
-					printf("%s: ",currentClient->name);
+					//packet[n] = '\0';
+					printf("FROM %s:\n",currentClient->name);
 
 					//THIS IS WHERE YOU SEND THE packet TO THE SWITCH!!!
 					switch(packet[0])
@@ -143,7 +150,7 @@ int main(int argc, char ** argv)
 									write(i,packet,262173);
 									printf("%s disconnected...\n",currentClient->name);
 									bzero(&currentClient->name, sizeof(currentClient->name)+1);
-									bzero(&currentClient->currentRoom, sizeof(currentClient->currentRoom)+1);
+									currentClient->currentRoom = -1;
 									currentClient->signedIn = 0;
 									currentClient->socket = -1;
 									FD_CLR(i,&fds);
@@ -188,6 +195,39 @@ int main(int argc, char ** argv)
 						case 'q'	:	//UNUSED
 									break;
 						case 'r'	:	//explicitly send message to room
+									printf("Incoming command: %c\n",packet[0]);
+									printf("Incoming option: ");
+									for(x = 1; x < 21; x++)
+										printf("%c",packet[x]);
+									printf("\nIncoming size: ");
+									for(x = 21; x < 29; x++)
+										printf("%c", packet[x]);
+									printf("\nIncoming content: ");
+									for(x = 29; x < 262173; x++)
+										printf("%c", packet[x]);
+									printf("\n");
+									
+									//ALTER PACKET
+									for(x = 0;x < 20; x++)
+										packet[x+1] = currentClient->name[x];
+								
+									//DISPLAY OUTGOING PACKET
+									printf("Outgoing command: %c\n",packet[0]);
+									printf("Outgoing option: ");
+									for(x = 1; x < 21; x++)
+										printf("%c",packet[x]);
+									printf("\nOutgoing size: ");
+									for(x = 21; x < 29; x++)
+										printf("%c", packet[x]);
+									printf("\nOutgoing content: ");
+									for(x = 29; x < 262173; x++)
+										printf("%c", packet[x]);
+									printf("\n");
+									
+									//WRITE TO OTHERS IN SAME ROOM
+									for(x = 0; x < 10; x++)
+										if(clientList[x].currentRoom == currentClient->currentRoom)
+											write(clientList[x].socket,packet,sizeof(packet));
 									break;
 						case 's'	:	//switch rooms
 									break;
@@ -197,7 +237,8 @@ int main(int argc, char ** argv)
 									break;
 						case 'v'	:	//UNUSED
 									break;
-						case 'w'	:	printf("Whisper\n");//Whisper
+						case 'w'	:	printf("Whisper\n");
+									write(i,packet,sizeof(packet));//Whisper
 									break;
 						case 'x'	:	//UNUSED
 									break;
@@ -205,28 +246,23 @@ int main(int argc, char ** argv)
 									break;
 						case 'z'	:	//UNUSED
 									break;
-						default		:	break;//No Command -> Send to current room
+
+						default		:	//DISPLAY INCOMING PACKET
+									break;//No Command -> Send to current room								
+									
 		
 					}//end switch
-
-
-
-
-						for(x = 0; x < 284; x++)
-							printf("%c",packet[x]);
 						//write 
 						//**NEEDS UPDATE FOR FULL SERVER**
 						//write(i,"HELLO!\n", sizeof("HELLO!\n"));
 
 					//CLEAR OUT packet BUFFER
-					for(x = 0; x < 284; x++)
-						packet[x] = '\0';
 				}//end else (read/write for client)
 
 			}//end if (if a client connects/is ready for i/o)
 		}//end for (if a file descriptor is ready for i/o)
 	}//end while (keep server running indefinitely)
-	return;
+	return 1;
 }//end main
 
 
