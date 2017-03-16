@@ -79,10 +79,10 @@ int main(int argc, char ** argv)
 		char size[8];
 		char content[262144];
 
-		bzero(&command, sizeof(command)+1);
-		bzero(&option, sizeof(option)+1);
-		bzero(&size, sizeof(size)+1);
-		bzero(&content, sizeof(content)+1);
+		bzero(&command, sizeof(command));
+		bzero(&option, sizeof(option));
+		bzero(&size, sizeof(size));
+		bzero(&content, sizeof(content));
 
 		for(x = 0; x < 262173; x++)
 			packet[x] = '\0';
@@ -214,8 +214,6 @@ int main(int argc, char ** argv)
 									for(x = 1; x < 21; x++)
 										currentClient->name[x-1] = packet[x];
 
-
-
 									break;
 						case 'o'	:	//UNUSED
 									break;
@@ -289,6 +287,24 @@ int main(int argc, char ** argv)
 						case 'v'	:	//UNUSED
 									break;
 						case 'w'	:	printf("Whisper\n");
+									for(x = 0; x < 10; x++)//for each client in the list
+									{
+										int same = 1;
+										int y;
+										for(y = 0; y < 20 && same; y++)//if the client name == the option field
+										{
+											if(packet[y+1] != clientList[x].name[y]);
+											{
+												same = 0;
+											}
+										}
+										if(same)
+										{
+											for(y = 1; y < 21; x++)
+												packet[y] = clientList[x].name[y-1];
+											write(clientList[x].socket,packet,sizeof(packet));
+										}
+									}									
 									write(i,packet,sizeof(packet));//Whisper
 									break;
 						case 'x'	:	//UNUSED
