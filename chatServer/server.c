@@ -202,12 +202,34 @@ int main(int argc, char ** argv)
 									break;
 
 						case 'e'	:	//commands.exitRoom(i);
+									currentClient->currentRoom = 0;
+									snprintf(option, sizeof(option)+1, "SERVER");
+									snprintf(content,sizeof(content)+1,"You have exited to the lobby.");
+ 									for(x = 1; x < 21; x++)
+										packet[x] = option[x-1];
+									for(x = 29; x < sizeof(packet); x++)
+										packet[x] = content[x-29];
+									write(currentClient->socket,packet,sizeof(packet));
 									break;
 						case 'f'	:	//commands.pFile(clinetList,packet);private file
 									break;
 						case 'g'	:	//group file
 									break;
 						case 'h'	:	//who's in my room?
+									snprintf(option, sizeof(option)+1, "SERVER"); 
+									snprintf(content,sizeof(content)+1, "%s", "\nUsers in your room:\n");
+									for(x=0;x<10;x++){
+										if(clientList[x].name[0]!='\0' && clientList[x].currentRoom==currentClient->currentRoom){
+											strcat(content, clientList[x].name);
+											strcat(content, "\n");
+										}
+									}
+									
+									for(x=1;x<21;x++)
+										packet[x]=option[x-1];
+									for(x=29;x<sizeof(packet);x++)
+										packet[x]=content[x-29];
+									write(currentClient->socket,packet,sizeof(packet));
 									break;
 						case 'i'	:	//UNUSED
 									break;
@@ -216,18 +238,20 @@ int main(int argc, char ** argv)
 						case 'k'	:	//UNUSED
 									break;
 						case 'l'	:	//list all users in all rooms
-									/*snprintf(content,sizeof(content)+1,"List of Users:\n %s%s%s%s%s%s%s%s%s%s",
-															clientList[0].name+"\n",
-															clientList[1].name+"\n",
-															clientList[2].name+"\n",
-															clientList[3].name+"\n",
-															clientList[4].name+"\n",
-															clientList[5].name+"\n",
-															clientList[6].name+"\n",
-															clientList[7].name+"\n",
-															clientList[8].name+"\n",
-															clientList[9].name+"\n");
-									write(currentClient->socket,packet,sizeof(packet));*/
+									snprintf(option, sizeof(option)+1, "SERVER"); 
+									snprintf(content,sizeof(content)+1, "%s", "\nUsers:\n");
+									for(x=0;x<10;x++){
+										if(clientList[x].name[0]!='\0'){
+											strcat(content, clientList[x].name);
+											strcat(content, "\n");
+										}
+									}
+									
+									for(x=1;x<21;x++)
+										packet[x]=option[x-1];
+									for(x=29;x<sizeof(packet);x++)
+										packet[x]=content[x-29];
+									write(currentClient->socket,packet,sizeof(packet));
 									break;
 						case 'm'	:	//UNUSED
 									break;
