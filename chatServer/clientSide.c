@@ -78,11 +78,11 @@ int main(int argc, char **argv) {
     char room1[2] = "X";
 
     while (!threadFinished) {
-        bzero(&command, sizeof(command) + 1);
-        bzero(&option, sizeof(option) + 1);
-        bzero(&size, sizeof(size) + 1);
-        bzero(&content, sizeof(content) + 1);
-        bzero(&packet, sizeof(packet) + 1);
+        bzero(&command, sizeof(command));
+        bzero(&option, sizeof(option));
+        bzero(&size, sizeof(size));
+        bzero(&content, sizeof(content));
+        bzero(&packet, sizeof(packet));
 
         int x;
 
@@ -131,7 +131,7 @@ int main(int argc, char **argv) {
 
                 case 'n'    :
                     command[0] = 'n';//name registration
-                    for (x = 0; x < 21; x++)
+                    for (x = 0; x < 21 && (writes[x+3] != ' ' || writes[x+3] != '\n'); x++)
                         option[x] = writes[x + 3];
                     break;
 
@@ -149,6 +149,28 @@ int main(int argc, char **argv) {
 
                 case 'w'    :
                     command[0] = 'w';//Whisper
+
+                    for (x = 0; x < 24 && writes[x+3] != ' '; x++)
+                        option[x] = writes[x + 3];
+
+
+                    puts(option);
+                    printf("option: %s\n", option);
+                    // leaves at space after name
+                    int y = x+=4;
+
+                    printf("X: %d\n", x);
+                    printf("Y: %d\n", y);
+
+
+
+
+                    for (; x < sizeof(content)+y; x++)/////// puts message into conent///
+                    {
+                        content[(x - y)] = writes[x];
+                    }
+
+
                     break;
 
 
@@ -157,6 +179,10 @@ int main(int argc, char **argv) {
                     printf("%c%c Is not a valid command. Type /c for list of current commands\n", writes[0], writes[1]);
                     command[0] = writes[1];
                     break;
+            }
+
+            for (u = 0; u < 20; u++) {
+                printf("%c\n", option[u]);
             }
         }
             /////////////////////////////////////No Command Given//////////////////////
@@ -167,7 +193,6 @@ int main(int argc, char **argv) {
             puts("filled command");
 
             for (u = 0; u < sizeof(writes); u++) {
-                // printf("%d\n", u);
                 content[u] = writes[u];
             }
 
@@ -181,10 +206,21 @@ int main(int argc, char **argv) {
         }
 
 /////////////////////////////////////////BUILDING PACKET///////////////////////////////
+
+        printf("command: %s\n", command);
+        printf("option: %s\n", option);
+        printf("size: %s\n", size);
+        printf("Content: %s\n", content);
+        puts("filled content");
+
         if (command[0] != 'z') {
             //content 262144
             packet[0] = command[0];
             for (x = 1; x < 21; x++) {
+                if (option[x - 1] == '\n')
+                    packet[x] = '\0';
+
+                else
                 packet[x] = option[x - 1];
             }
             //SIZE -> packet[21 - 29]
