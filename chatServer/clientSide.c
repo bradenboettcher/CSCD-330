@@ -132,19 +132,19 @@ int main(int argc, char **argv) {
                 case 'n'    :
                     command[0] = 'n';//name registration
                     for (x = 0; x < 21; x++)
-                        option[x] = writes[x + 2];
+                        option[x] = writes[x + 3];
                     break;
 
                 case 'r'    :
                     command[0] = 'r'; //explicitly send message to room
                     for (x = 0; x < sizeof(writes) - 2; x++)
-                        content[x] = writes[x + 2];
+                        content[x] = writes[x + 3];
                     break;
 
                 case 's'    :
                     command[0] = 's';//switch rooms
                     for (x = 0; x < 21; x++)
-                        option[x] = writes[x + 2];
+                        option[x] = writes[x + 3];
                     break;
 
                 case 'w'    :
