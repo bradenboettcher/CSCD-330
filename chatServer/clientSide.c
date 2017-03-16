@@ -159,9 +159,9 @@ int main(int argc, char **argv) {
                     // leaves at space after name
                     int y = x+=4;
 
-                    printf("X: %d\n", x);
-                    printf("Y: %d\n", y);
-
+//                    printf("X: %d\n", x);
+//                    printf("Y: %d\n", y);
+//
 
 
 
@@ -181,9 +181,9 @@ int main(int argc, char **argv) {
                     break;
             }
 
-            for (u = 0; u < 20; u++) {
-                printf("%c\n", option[u]);
-            }
+//            for (u = 0; u < 20; u++) {
+//                printf("%c\n", option[u]);
+//            }
         }
             /////////////////////////////////////No Command Given//////////////////////
         else {
@@ -197,21 +197,21 @@ int main(int argc, char **argv) {
             }
 
 
-            printf("command: %s\n", command);
-            printf("option: %s\n", option);
-            printf("size: %s\n", size);
-            printf("Content: %s\n", content);
-            puts("filled content");
+//            printf("command: %s\n", command);
+//            printf("option: %s\n", option);
+//            printf("size: %s\n", size);
+//            printf("Content: %s\n", content);
+//            puts("filled content");
 
         }
 
 /////////////////////////////////////////BUILDING PACKET///////////////////////////////
 
-        printf("command: %s\n", command);
-        printf("option: %s\n", option);
-        printf("size: %s\n", size);
-        printf("Content: %s\n", content);
-        puts("filled content");
+//        printf("command: %s\n", command);
+//        printf("option: %s\n", option);
+//        printf("size: %s\n", size);
+//        printf("Content: %s\n", content);
+//        puts("filled content");
 
         if (command[0] != 'z') {
             //content 262144

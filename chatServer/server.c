@@ -295,7 +295,7 @@ int main(int argc, char ** argv)
 										if(strcmp(option,clientList[x].name))
 										{
 											int y;
-											for(y = 1; y < 21; x++)
+											for(y = 1; y < 21; y++)
 												packet[y] = currentClient->name[y-1];
 											write(clientList[x].socket,packet,sizeof(packet));
 										}
