@@ -237,13 +237,11 @@ int main(int argc, char **argv) {
                 else
                     packet[x] = content[x - 29];
             }
-            puts("PACKET");
-            //puts(packet);
+
             for (x = 0; x < 262173; x++) {
                 printf("%c", packet[x]);
             }
-            printf("packetlength: %d\n", (int) strlen(packet));
-            printf("messagelength: %d\n", (int) strlen(packet) - 30);
+
         }//end If
 //////////////////////////////////////PACKET BUILT//////////////////////////////////////
         write(sockfd, packet, sizeof(packet));
