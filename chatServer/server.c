@@ -340,7 +340,7 @@ int main(int argc, char ** argv)
 						case 'w'	:	//printf("Whisper\n");
 									for(x = 1; x < 21; x++)
 										option[x-1] = packet[x];
-
+									int sent = 0;
 									for(x = 0; x < 10; x++)//for each client in the list
 									{
 										printf("from: %s\nto: %s",currentClient->name,clientList[x].name);
@@ -350,9 +350,19 @@ int main(int argc, char ** argv)
 											for(y = 1; y < 21; y++)
 												packet[y] = currentClient->name[y-1];
 											write(clientList[x].socket,packet,sizeof(packet));
+											sent = 1;
 										}
-									}									
-									write(i,packet,sizeof(packet));//echo Whisper
+									}
+									if(!sent)
+									{
+										snprintf(option,sizeof(option)+1,"SERVER");
+										snprintf(content,sizeof(content)+1,"User does not exist: type '/l' for a list of current users.");
+										for(x = 1; x < 21; x++)
+											packet[x] = option[x-1];
+										for(x = 29; x < sizeof(packet); x++)
+											packet[x] = content[x-29];
+										write(currentClient->socket,packet,sizeof(packet));
+									}
 									break;
 						case 'x'	:	//UNUSED
 									break;
