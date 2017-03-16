@@ -185,6 +185,7 @@ int main(int argc, char **argv) {
 //                printf("%c\n", option[u]);
 //            }
         }
+
             /////////////////////////////////////No Command Given//////////////////////
         else {
             int u;
