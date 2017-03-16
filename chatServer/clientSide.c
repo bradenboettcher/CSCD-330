@@ -24,6 +24,8 @@ void *readThread(int *sockfd) {
             return NULL;
         } else if (ret > 0) {
             reads[ret] = '\0';
+
+            if (reads[0] != 'f' && reads[0] != 'g') {}
             for (x = 1; x < 21; x++) {
                 printf("%c", reads[x]);
             }
@@ -34,8 +36,9 @@ void *readThread(int *sockfd) {
             printf("\n");
             ret = 0;
         }
+    }
 
-    }//end while
+}//end while
 }//end readThread
 
 int main(int argc, char **argv) {
@@ -115,7 +118,7 @@ int main(int argc, char **argv) {
                     break;
 
                 case 'f'    :
-                    command[0] = 'f';//commands.pFile(clinetList,packet);private file
+                    command[0] = 'f';//commands.pFile(clientList,packet);private file
                     break;
 
                 case 'g'   :
@@ -131,7 +134,7 @@ int main(int argc, char **argv) {
 
                 case 'n'    :
                     command[0] = 'n';//name registration
-                    for (x = 0; x < 21 && (writes[x+3] != ' ' || writes[x+3] != '\n'); x++)
+                    for (x = 0; x < 21 && (writes[x + 3] != ' ' || writes[x + 3] != '\n'); x++)
                         option[x] = writes[x + 3];
                     break;
 
@@ -150,14 +153,14 @@ int main(int argc, char **argv) {
                 case 'w'    :
                     command[0] = 'w';//Whisper
 
-                    for (x = 0; x < 24 && writes[x+3] != ' '; x++)
+                    for (x = 0; x < 24 && writes[x + 3] != ' '; x++)
                         option[x] = writes[x + 3];
 
 
                     puts(option);
                     printf("option: %s\n", option);
                     // leaves at space after name
-                    int y = x+=4;
+                    int y = x += 4;
 
 //                    printf("X: %d\n", x);
 //                    printf("Y: %d\n", y);
@@ -165,7 +168,7 @@ int main(int argc, char **argv) {
 
 
 
-                    for (; x < sizeof(content)+y; x++)/////// puts message into conent///
+                    for (; x < sizeof(content) + y; x++)/////// puts message into conent///
                     {
                         content[(x - y)] = writes[x];
                     }
@@ -221,7 +224,7 @@ int main(int argc, char **argv) {
                     packet[x] = '\0';
 
                 else
-                packet[x] = option[x - 1];
+                    packet[x] = option[x - 1];
             }
             //SIZE -> packet[21 - 29]
             for (x = 21; x < 29; x++) {
