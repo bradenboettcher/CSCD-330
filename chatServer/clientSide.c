@@ -36,9 +36,9 @@ void *readThread(int *sockfd) {
             printf("\n");
             ret = 0;
         }
-    }
 
-}//end while
+
+    }//end while
 }//end readThread
 
 int main(int argc, char **argv) {
