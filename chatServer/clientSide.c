@@ -25,16 +25,35 @@ void *readThread(int *sockfd) {
         } else if (ret > 0) {
             reads[ret] = '\0';
 
-            if (reads[0] != 'f' && reads[0] != 'g') {}
-            for (x = 1; x < 21; x++) {
-                printf("%c", reads[x]);
+            if (reads[0] == 'g')
+            {
+                char content[262144];
+                bzero(&content, sizeof(content));
+                int x;
+
+                printf("File From:");
+                for (x = 1; x < 21; x++) {
+                    printf("%c", reads[x]);
+                }
+                printf("\n");
+                for(x = 29; x<sizeof(reads); x++)
+                    content[x-29] = reads[x];
+
+                FILE *f2write = fopen("file.txt", "w");
+                fwrite(content, 1, sizeof(content), f2write);
+                fclose(f2write);
             }
-            printf(": ");
-            for (x = 29; x < sizeof(reads); x++) {
-                printf("%c", reads[x]);
+            else {
+                for (x = 1; x < 21; x++) {
+                    printf("%c", reads[x]);
+                }
+                printf(": ");
+                for (x = 29; x < sizeof(reads); x++) {
+                    printf("%c", reads[x]);
+                }
+                printf("\n");
+                ret = 0;
             }
-            printf("\n");
-            ret = 0;
         }
 
 
@@ -77,6 +96,8 @@ int main(int argc, char **argv) {
     char size[8];
     char content[262144];
     char packet[262173]; //the packet size will be the command + option + size + content (which will be the MAX size of a file).
+    char filePath[100];
+
 
     char room1[2] = "X";
 
@@ -86,6 +107,7 @@ int main(int argc, char **argv) {
         bzero(&size, sizeof(size));
         bzero(&content, sizeof(content));
         bzero(&packet, sizeof(packet));
+        bzero(&filePath, sizeof(filePath));
 
         int x;
 
@@ -97,60 +119,110 @@ int main(int argc, char **argv) {
             int u;
             //command[0] = writes[1];
             switch (writes[1]) {
-                case 'b'    :
-                    command[0] = 'b';
+                case 'b'    ://////////////////////////////////////////////////////done
+                    command[0] = 'b';//broadcast server wide
 
                     for (u = 0; u < sizeof(writes) - 3; u++) {
                         content[u] = writes[u + 3];
                     }
                     break;
 
-                case 'c'    :
+                case 'c'    ://////////////////////////////////////////////////////done
                     command[0] = 'c';//command list//commands.commandList(i);break;
                     break;
 
-                case 'd'    :
+                case 'd'    ://////////////////////////////////////////////////////done
                     command[0] = 'd';//commands.disconnect(i);
                     break;
 
-                case 'e'    :
+                case 'e'    ://////////////////////////////////////////////////////done
                     command[0] = 'e';//commands.exitRoom(i);
                     break;
 
+
                 case 'f'    :
                     command[0] = 'f';//commands.pFile(clientList,packet);private file
+
+//                    for (x = 0; x < 24 && writes[x + 3] != ' '; x++)
+//                        option[x] = writes[x + 3];
+//
+//                    for (x = 0; x < sizeof(writes) - 2; x++)
+//                        filePath[x] = writes[x + 3];
+//
+//                    FILE *fl = fopen(filePath, "r");
+//                    fseek(fl, 0, SEEK_END);
+//                    long length = ftell(fl);
+//                    //char *ret = malloc(length);
+//                    fseek(fl, 0, SEEK_SET);
+//                    fread(content, 1, length, fl);
+//                    fclose(fl);
+
                     break;
 
                 case 'g'   :
                     command[0] = 'g';//group file
+
+                    for (x = 0; x < sizeof(writes) - 2; x++)
+                        filePath[x] = writes[x + 3];
+
+                    for (x = 0; x < sizeof(filePath); x++)
+                        if (filePath[x] == '\n')
+                            filePath[x] = '\0';
+
+                    FILE *f2 = fopen(filePath, "r");
+
+
+                    ///////////////////////////////////check for null file////////////////////
+                    if( f2 != NULL ) {
+                        fseek(f2, 0, SEEK_END);
+                        long length2 = ftell(f2);
+                        fseek(f2, 0, SEEK_SET);
+                        fread(content, 1, length2, f2);
+                        fclose(f2);
+
+                        ////file - test////
+//                        FILE *f2write = fopen("file.txt", "w");
+//                        fwrite(content, 1, length2, f2write);
+//                        fclose(f2write);
+
+                    }
+
+                    else
+                    {
+                        printf("\n-----------------File does not exist--------------\n");
+                    }
+
+
                     break;
-                case 'h'    :
+
+
+                case 'h'    ://////////////////////////////////////////////////////done
                     command[0] = 'h';//who's in my room?
                     break;
 
-                case 'l'    :
+                case 'l'    ://////////////////////////////////////////////////////done
                     command[0] = 'l';//list all users in all rooms
                     break;
 
-                case 'n'    :
+                case 'n'    ://////////////////////////////////////////////////////done
                     command[0] = 'n';//name registration
                     for (x = 0; x < 21 /*&& (writes[x + 3] != ' ' || writes[x + 3] != '\n')*/; x++)
                         option[x] = writes[x + 3];
                     break;
 
-                case 'r'    :
+                case 'r'    ://////////////////////////////////////////////////////done
                     command[0] = 'r'; //explicitly send message to room
                     for (x = 0; x < sizeof(writes) - 2; x++)
                         content[x] = writes[x + 3];
                     break;
 
-                case 's'    :
+                case 's'    ://////////////////////////////////////////////////////done
                     command[0] = 's';//switch rooms
                     for (x = 0; x < 21; x++)
                         option[x] = writes[x + 3];
                     break;
 
-                case 'w'    :
+                case 'w'    ://////////////////////////////////////////////////////done
                     command[0] = 'w';//Whisper
 
                     for (x = 0; x < 24 && writes[x + 3] != ' '; x++)
@@ -239,10 +311,10 @@ int main(int argc, char **argv) {
 //            for (x = 0; x < 262173; x++) {/////////////////////////////////////////PACKET PRINT
 //                printf("%c", packet[x]);
 //            }
-
+            write(sockfd, packet, sizeof(packet));
         }//end If
 //////////////////////////////////////PACKET BUILT//////////////////////////////////////
-        write(sockfd, packet, sizeof(packet));
+
 
 
     }
