@@ -25,25 +25,31 @@ void *readThread(int *sockfd) {
         } else if (ret > 0) {
             reads[ret] = '\0';
 
-            if (reads[0] == 'g')
-            {
+            if (reads[0] == 'g' || reads[0] == 'f') {
                 char content[262144];
                 bzero(&content, sizeof(content));
-                int x;
+                int x, size = 0;
 
-                printf("File From:");
+                if (reads[0] == 'f')
+                    printf("Private ");
+
+                printf("File From: ");
                 for (x = 1; x < 21; x++) {
                     printf("%c", reads[x]);
                 }
                 printf("\n");
-                for(x = 29; x<sizeof(reads); x++)
-                    content[x-29] = reads[x];
+
+                for (x = 29; x < sizeof(reads); x++)
+                    content[x - 29] = reads[x];
+
+                for (x = 0; x < sizeof(content); x++)
+                    if (content[x] != '\0')
+                        size++;
 
                 FILE *f2write = fopen("file.txt", "w");
-                fwrite(content, 1, sizeof(content), f2write);
+                fwrite(content, 1, size, f2write);
                 fclose(f2write);
-            }
-            else {
+            } else {
                 for (x = 1; x < 21; x++) {
                     printf("%c", reads[x]);
                 }
@@ -173,7 +179,7 @@ int main(int argc, char **argv) {
 
 
                     ///////////////////////////////////check for null file////////////////////
-                    if( f2 != NULL ) {
+                    if (f2 != NULL) {
                         fseek(f2, 0, SEEK_END);
                         long length2 = ftell(f2);
                         fseek(f2, 0, SEEK_SET);
@@ -185,10 +191,7 @@ int main(int argc, char **argv) {
 //                        fwrite(content, 1, length2, f2write);
 //                        fclose(f2write);
 
-                    }
-
-                    else
-                    {
+                    } else {
                         printf("\n-----------------File does not exist--------------\n");
                     }
 
