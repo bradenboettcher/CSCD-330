@@ -125,6 +125,32 @@ int main(int argc, char ** argv)
 							if(clientList[y].signedIn && clientList[y].currentRoom == 0)
 								write(clientList[y].socket,packet,sizeof(packet));
 						printf("%s has joined the server with socket: %d.\n",clientList[x].name,clientSocket);
+
+						bzero(option,sizeof(option));
+						bzero(content,sizeof(content));
+						bzero(packet,sizeof(packet));				
+
+						snprintf(option,sizeof(option)+1,"SERVER");
+						snprintf(content,sizeof(content)+1, "--COMMAND LIST--\ncommand - description : usage\n"
+										    "/b - Broadcast: /b message to broadcast\n"
+										    "/c - Command List: /c\n"
+										    "/d - Disconnect: /d\n"
+										    "/e - Exit Room and return to general chat: /e\n"
+										    "/f - Send File to specific user: /f username FILEPATH\n"
+										    "/g - Send File to Room: /f FILEPATH\n"
+										    "/h - List of users in current room: /h\n"
+										    "/l - List all users in all rooms: /l\n"
+										    "/n - Name registration: /n NewName\n"
+										    "/r - Send message to current room: /r message\n"
+										    "/s - Switch rooms: '/s RoomName' OR just '/s' to see a list of rooms\n"
+										    "/w - Whisper: /w nameToWhisperTo message to send\n");
+						packet[0] = 'c';
+						for(y = 1; y < 21; y++)
+							packet[y] = option[y-1];
+						for(y = 29; y < sizeof(packet); y++)
+							packet[y] = content[y-29];
+						write(clientList[x].socket,packet,sizeof(packet));
+
 						break;
 					}//end if
 				}//end for	
