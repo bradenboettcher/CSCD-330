@@ -134,7 +134,7 @@ int main(int argc, char **argv) {
 
                 case 'n'    :
                     command[0] = 'n';//name registration
-                    for (x = 0; x < 21 && (writes[x + 3] != ' ' || writes[x + 3] != '\n'); x++)
+                    for (x = 0; x < 21 /*&& (writes[x + 3] != ' ' || writes[x + 3] != '\n')*/; x++)
                         option[x] = writes[x + 3];
                     break;
 
