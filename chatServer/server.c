@@ -89,9 +89,10 @@ int main(int argc, char ** argv)
 		bzero(&option, sizeof(option));
 		bzero(&size, sizeof(size));
 		bzero(&content, sizeof(content));
-
-		for(x = 0; x < 262173; x++)
-			packet[x] = '\0';
+		bzero(&packet, sizeof(packet));
+		
+//		for(x = 0; x < 262173; x++)
+//			packet[x] = '\0';
 		
 
 		//if a file descriptor is ready for I/O
@@ -112,7 +113,17 @@ int main(int argc, char ** argv)
 						snprintf(clientList[x].name,21,"%s%d","guest",x);
 						clientList[x].currentRoom = 0;
 						clientList[x].socket = clientSocket;
-
+						int y;
+						snprintf(option,sizeof(option)+1,"SERVER");
+						snprintf(content,sizeof(content)+1,"%s%s",clientList[x].name," has joined the Lobby.");
+						packet[0] = 'b';
+						for(y = 1; y < 21; y++)
+							packet[y] = option[y-1];
+						for(y = 29; y < sizeof(packet); y++)
+							packet[y] = content[y-29];
+						for(y = 0; y < 10; y++)
+							if(clientList[y].signedIn && clientList[y].currentRoom == 0)
+								write(clientList[y].socket,packet,sizeof(packet));
 						printf("%s has joined the server with socket: %d.\n",clientList[x].name,clientSocket);
 						break;
 					}//end if
@@ -133,26 +144,36 @@ int main(int argc, char ** argv)
 				for(x = 0; x < 10; x++)
 					if(clientList[x].socket == i)
 						currentClient = &clientList[x];
-
 				//end get current client
 
 				//IF Client Disconnects
 				if(n == 0)
 				{
 					printf("%s disconnected...\n",currentClient->name);
+					snprintf(option,sizeof(option)+1,"SERVER");
+					snprintf(content,sizeof(content)+1,"%s%s",currentClient->name," has disconnected from the server.");
+
+					packet[0] = 'b';
+					for(x = 1; x < 21; x++)
+						packet[x] = option[x-1];
+					for(x = 29; x < sizeof(packet); x++)
+						packet[x] = content[x-29];
+					for(x = 0; x < 10; x++)
+						if(clientList[x].signedIn)
+							write(clientList[x].socket,packet,sizeof(packet));
+					packet[0] = 'd';
 					bzero(&currentClient->name, sizeof(currentClient->name)+1);
 					currentClient->currentRoom = -1;
 					currentClient->signedIn = 0;
 					currentClient->socket = -1;
 					FD_CLR(i,&fds);
 					FD_CLR(i,&cfds);
-					close(i);				
+					close(i);
 				}//end client disconnection
-
 				else
 				{
 					//packet[n] = '\0';
-					printf("FROM %s:\n",currentClient->name);
+					//printf("FROM %s:\n",currentClient->name);
 
 					//THIS IS WHERE YOU SEND THE packet TO THE SWITCH!!!
 switch(packet[0])
@@ -215,19 +236,44 @@ switch(packet[0])
 				break;
 
 	case 'e'	:	//commands.exitRoom(i);
+				snprintf(option,sizeof(option)+1,"SERVER");
+				snprintf(content,sizeof(content)+1,"%s%s",currentClient->name," has exited to the Lobby.");
+				packet[0] = 'r';
+				int y;
+				for(y = 1; y < 21; y++)
+				 	packet[y] = option[y-1];
+				for(y = 29; y < sizeof(packet); y++)
+					packet[y] = content[y-29];
+				for(y = 0; y < 10; y++)
+					if(clientList[y].signedIn && clientList[y].currentRoom == currentClient->currentRoom && clientList[y].socket != currentClient->socket)
+						write(clientList[y].socket,packet,sizeof(packet));
+				bzero(&option,sizeof(option));
+				bzero(&content,sizeof(content));
+				bzero(&packet,sizeof(packet));
+
 				currentClient->currentRoom = 0;
-				snprintf(option, sizeof(option)+1, "SERVER");
-				snprintf(content,sizeof(content)+1,"You have exited to the lobby.");
-				for(x = 1; x < 21; x++)
-					packet[x] = option[x-1];
-				for(x = 29; x < sizeof(packet); x++)
-					packet[x] = content[x-29];
-				write(currentClient->socket,packet,sizeof(packet));
+				snprintf(option,sizeof(option)+1,"SERVER");
+				snprintf(content,sizeof(content)+1,"%s%s",currentClient->name," has entered the Lobby.");
+				packet[0] = 'r';
+				for(y = 1; y < 21; y++)
+				   	packet[y] = option[y-1];
+				for(y = 29; y < sizeof(packet); y++)
+					packet[y] = content[y-29];
+				for(y = 0; y < 10; y++)
+					if(clientList[y].signedIn && clientList[y].currentRoom == 0)
+						write(clientList[y].socket,packet,sizeof(packet));
 				break;
 	case 'f'	:	//commands.pFile(clinetList,packet);private file
 				break;
-	case 'g'	:	//group file
+
+	case 'g'	:	for(x = 0;x < 20; x++)
+					packet[x+1] = currentClient->name[x];
+				//WRITE TO OTHERS IN SAME ROOM
+				for(x = 0; x < 10; x++)
+					if(clientList[x].signedIn && clientList[x].currentRoom == currentClient->currentRoom)
+						write(clientList[x].socket,packet,sizeof(packet));
 				break;
+
 	case 'h'	:	//who's in my room?
 				snprintf(option, sizeof(option)+1, "SERVER"); 
 				snprintf(content,sizeof(content)+1, "%s", "\nUsers in your room:\n");
@@ -333,35 +379,8 @@ switch(packet[0])
 				break;
 
 	case 'r'	:	//explicitly send message to room
-//				printf("Incoming command: %c\n",packet[0]);
-//				printf("Incoming option: ");
-//				for(x = 1; x < 21; x++)
-//					printf("%c",packet[x]);
-//				printf("\nIncoming size: ");
-//				for(x = 21; x < 29; x++)
-//					printf("%c", packet[x]);
-//				printf("\nIncoming content: ");
-//				for(x = 29; x < 262173; x++)
-//					printf("%c", packet[x]);
-//				printf("\n");
-				
-				//ALTER PACKET
 				for(x = 0;x < 20; x++)
 					packet[x+1] = currentClient->name[x];
-			
-				//DISPLAY OUTGOING PACKET
-//				printf("Outgoing command: %c\n",packet[0]);
-//				printf("Outgoing option: ");
-//				for(x = 1; x < 21; x++)
-//					printf("%c",packet[x]);
-//				printf("\nOutgoing size: ");
-//				for(x = 21; x < 29; x++)
-//					printf("%c", packet[x]);
-//				printf("\nOutgoing content: ");
-//				for(x = 29; x < 262173; x++)
-//					printf("%c", packet[x]);
-//				printf("\n");
-				
 				//WRITE TO OTHERS IN SAME ROOM
 				for(x = 0; x < 10; x++)
 					if(clientList[x].signedIn && clientList[x].currentRoom == currentClient->currentRoom)
@@ -370,26 +389,96 @@ switch(packet[0])
 	case 's'	:	//switch rooms
 				switch(packet[1])
 				{
-					case 'X' : currentClient->currentRoom = 1;
+					case 'X' : snprintf(option,sizeof(option)+1,"SERVER");
+						   snprintf(content,sizeof(content)+1,"%s%s",currentClient->name," has left the room.");
+						   packet[0] = 'r';
+						   int y;
+						   for(y = 1; y < 21; y++)
+						   	   packet[y] = option[y-1];
+						   for(y = 29; y < sizeof(packet); y++)
+							   packet[y] = content[y-29];
+						   for(y = 0; y < 10; y++)
+							   if(clientList[y].signedIn && clientList[y].currentRoom == currentClient->currentRoom && clientList[y].socket != currentClient->socket)
+								   write(clientList[y].socket,packet,sizeof(packet));
+						   bzero(&option,sizeof(option));
+						   bzero(&content,sizeof(content));
+						   bzero(&packet,sizeof(packet));
+
+						   currentClient->currentRoom = 1;
 						   snprintf(option,sizeof(option)+1,"SERVER");
-						   snprintf(content,sizeof(content)+1,"You have switched to room 'X'.");
+						   snprintf(content,sizeof(content)+1,"%s%s",currentClient->name," has joined room 'X'.");
+						   packet[0] = 'r';
+						   for(y = 1; y < 21; y++)
+						   	   packet[y] = option[y-1];
+						   for(y = 29; y < sizeof(packet); y++)
+							   packet[y] = content[y-29];
+						   for(y = 0; y < 10; y++)
+							   if(clientList[y].signedIn && clientList[y].currentRoom == 1)
+								   write(clientList[y].socket,packet,sizeof(packet));
 						   break;
-					case 'Y' : currentClient->currentRoom = 2;
+
+					case 'Y' : snprintf(option,sizeof(option)+1,"SERVER");
+						   snprintf(content,sizeof(content)+1,"%s%s",currentClient->name," has left the room.");
+						   packet[0] = 'r';
+						   for(y = 1; y < 21; y++)
+						   	   packet[y] = option[y-1];
+						   for(y = 29; y < sizeof(packet); y++)
+							   packet[y] = content[y-29];
+						   for(y = 0; y < 10; y++)
+							   if(clientList[y].signedIn && clientList[y].currentRoom == currentClient->currentRoom && clientList[y].socket != currentClient->socket)
+								   write(clientList[y].socket,packet,sizeof(packet));
+						   bzero(&option,sizeof(option));
+						   bzero(&content,sizeof(content));
+						   bzero(&packet,sizeof(packet));
+
+						   currentClient->currentRoom = 2;
 						   snprintf(option,sizeof(option)+1,"SERVER");
-						   snprintf(content,sizeof(content)+1,"You have switched to room 'Y'.");
+						   snprintf(content,sizeof(content)+1,"%s%s",currentClient->name," has joined room 'Y'.");
+						   packet[0] = 'r';
+						   for(y = 1; y < 21; y++)
+						   	   packet[y] = option[y-1];
+						   for(y = 29; y < sizeof(packet); y++)
+							   packet[y] = content[y-29];
+						   for(y = 0; y < 10; y++)
+							   if(clientList[y].signedIn && clientList[y].currentRoom == 2)
+								   write(clientList[y].socket,packet,sizeof(packet));
 					           break;
-					case '1' : currentClient->currentRoom = 3;
+
+					case '1' : snprintf(option,sizeof(option)+1,"SERVER");
+						   snprintf(content,sizeof(content)+1,"%s%s",currentClient->name," has left the room.");
+						   packet[0] = 'r';
+						   for(y = 1; y < 21; y++)
+						   	   packet[y] = option[y-1];
+						   for(y = 29; y < sizeof(packet); y++)
+							   packet[y] = content[y-29];
+						   for(y = 0; y < 10; y++)
+							   if(clientList[y].signedIn && clientList[y].currentRoom == currentClient->currentRoom && clientList[y].socket != currentClient->socket)
+								   write(clientList[y].socket,packet,sizeof(packet));
+						   bzero(&option,sizeof(option));
+						   bzero(&content,sizeof(content));
+						   bzero(&packet,sizeof(packet));
+
+
+						   currentClient->currentRoom = 3;
 						   snprintf(option,sizeof(option)+1,"SERVER");
-						   snprintf(content,sizeof(content)+1,"You have switched to room '1'.");
+						   snprintf(content,sizeof(content)+1,"%s%s",currentClient->name," has joined room '1'.");
+						   packet[0] = 'r';
+						   for(y = 1; y < 21; y++)
+						   	   packet[y] = option[y-1];
+						   for(y = 29; y < sizeof(packet); y++)
+							   packet[y] = content[y-29];
+						   for(y = 0; y < 10; y++)
+							   if(clientList[y].signedIn && clientList[y].currentRoom == 3)
+								   write(clientList[y].socket,packet,sizeof(packet));
 						   break;
 					default	 : snprintf(option,sizeof(option)+1,"SERVER");
 						   snprintf(content,sizeof(content)+1, "Valid rooms are: 'X', 'Y', and '1'. Exit a room with '/e'.");
+						   for(y = 1; y < 21; y++)
+						   	   packet[y] = option[y-1];
+						   for(y = 29; y < sizeof(packet); y++)
+							   packet[y] = content[y-29];
+						   write(currentClient->socket,packet,sizeof(packet));
 				}			
-				for(x = 1; x < 21; x++)
-					packet[x] = option[x-1];
-				for(x = 29; x < sizeof(packet); x++)
-					packet[x] = content[x-29];
-				write(currentClient->socket,packet,sizeof(packet));
 
 				break;
 	case 't'	:	//UNUSED
@@ -431,8 +520,22 @@ switch(packet[0])
 	case 'z'	:	//UNUSED
 				break;
 
-	default		:	//DISPLAY INCOMING PACKET
-				break;//No Command -> Send to current room								
+	case '\0'	:	for(x = 0;x < 20; x++)
+					packet[x+1] = currentClient->name[x];
+				//WRITE TO OTHERS IN SAME ROOM
+				for(x = 0; x < 10; x++)
+					if(clientList[x].signedIn && clientList[x].currentRoom == currentClient->currentRoom)
+						write(clientList[x].socket,packet,sizeof(packet));
+				break;//No Command -> Send to current room	
+
+	default		:	snprintf(option,sizeof(option)+1,"SERVER");
+					snprintf(content,sizeof(content)+1,"This server does does not implement the sent command.");
+					for(x = 1; x < 21; x++)
+						packet[x] = option[x-1];
+					for(x = 29; x < sizeof(packet); x++)
+						packet[x] = content[x-29];
+					write(currentClient->socket,packet,sizeof(packet));
+										
 				
 
 }//end switch
