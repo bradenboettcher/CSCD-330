@@ -163,26 +163,45 @@ int main(int argc, char **argv) {
                 case 'f'    :
                     command[0] = 'f';//commands.pFile(clientList,packet);private file
 
-//                    for (x = 0; x < 24 && writes[x + 3] != ' '; x++)
-//                        option[x] = writes[x + 3];
-//
-//                    for (x = 0; x < sizeof(writes) - 2; x++)
-//                        filePath[x] = writes[x + 3];
-//
-//                    FILE *fl = fopen(filePath, "r");
-//                    fseek(fl, 0, SEEK_END);
-//                    long length = ftell(fl);
-//                    //char *ret = malloc(length);
-//                    fseek(fl, 0, SEEK_SET);
-//                    fread(content, 1, length, fl);
-//                    fclose(fl);
+
+                    for (x = 0; x < 24 && writes[x + 3] != ' '; x++)
+                        option[x] = writes[x + 3];
+
+                    printf("name: %s\n X: %d\n", option, x);
+
+                    int w = x +=4;
+
+                    for (; x < sizeof(filePath) + w && writes[x] != '\n'; x++)
+                        filePath[(x - w)] = writes[x];
+
+                    printf("filename: %s", filePath);
+
+
+                    FILE *f1 = fopen(filePath, "r");
+
+                    if (f1 != NULL) {
+                        fseek(f1, 0, SEEK_END);
+                        long length2 = ftell(f1);
+                        fseek(f1, 0, SEEK_SET);
+
+                        sprintf(size, "%d", length2);
+
+                        char picture[length2];
+
+                        int lengthX = fread(content, 1, length2, f1);
+                        fclose(f1);
+
+
+                    } else {
+                        printf("\n-----------------File does not exist--------------\n");
+                    }
 
                     break;
 
                 case 'g'   :
                     command[0] = 'g';//group file
 
-                    for (x = 0; x < sizeof(writes) - 2; x++)
+                    for (x = 0; x < sizeof(filePath); x++)
                         filePath[x] = writes[x + 3];
 
                     for (x = 0; x < sizeof(filePath); x++)
@@ -198,22 +217,13 @@ int main(int argc, char **argv) {
                         long length2 = ftell(f2);
                         fseek(f2, 0, SEEK_SET);
 
-
-
-
                         sprintf(size, "%d", length2);
 
                         char picture[length2];
-                        fread(picture, 1, length2, f2);
-                        memcpy(content, picture, length2);
 
-                        fread(content, 1, length2-1, f2);
+                        int lengthX = fread(content, 1, length2, f2);
                         fclose(f2);
 
-                        ////file - test////
-//                        FILE *f2write = fopen("file.jpg", "w");
-//                        fwrite(&content, 1, length2, f2write);
-//                        fclose(f2write);
 
                     } else {
                         printf("\n-----------------File does not exist--------------\n");
@@ -258,13 +268,7 @@ int main(int argc, char **argv) {
                     // leaves at space after name
                     int y = x += 4;
 
-//                    printf("X: %d\n", x);
-//                    printf("Y: %d\n", y);
-//
-
-
-
-                    for (; x < sizeof(content) + y; x++)/////// puts message into conent///
+                    for (; x < sizeof(content) + y; x++)/////// puts message into content///
                     {
                         content[(x - y)] = writes[x];
                     }
@@ -280,9 +284,6 @@ int main(int argc, char **argv) {
                     break;
             }
 
-//            for (u = 0; u < 20; u++) {
-//                printf("%c\n", option[u]);
-//            }
         }
 
             /////////////////////////////////////No Command Given//////////////////////
@@ -296,22 +297,10 @@ int main(int argc, char **argv) {
                 content[u] = writes[u];
             }
 
-
-//            printf("command: %s\n", command);
-//            printf("option: %s\n", option);
-//            printf("size: %s\n", size);
-//            printf("Content: %s\n", content);
-//            puts("filled content");
-
         }
 
 /////////////////////////////////////////BUILDING PACKET///////////////////////////////
 
-//        printf("command: %s\n", command);
-//        printf("option: %s\n", option);
-//        printf("size: %s\n", size);
-//        printf("Content: %s\n", content);
-//        puts("filled content");
 
         if (command[0] != 'z') {
             //content 262144
@@ -328,12 +317,9 @@ int main(int argc, char **argv) {
             for (x = 21; x < 29; x++) {
                 packet[x] = size[x - 21];
             }
-            //CONTENT -> packet[29 - 284]
+            //CONTENT -> packet[29 -
             for (x = 29; x < 262144; x++) {
-                if (content[x - 29] == '\n')
-                    packet[x] = '\0';
-                else
-                    packet[x] = content[x - 29];
+                packet[x] = content[x - 29];
             }
 
 //            for (x = 0; x < 262173; x++) {/////////////////////////////////////////PACKET PRINT
