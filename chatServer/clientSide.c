@@ -13,10 +13,22 @@
 bool threadFinished = 0;
 
 void *readThread(int *sockfd) {
-    int ret, x;
+    int ret, x, length;
     while (1) {
         char reads[262173];
+        char command[1];
+        char option[20];
+        char size[8];
+        char content[262144];
+
         bzero(&reads, sizeof(reads));
+
+        //bzero(&command, sizeof(command));
+        bzero(&option, sizeof(option));
+        bzero(&size, sizeof(size));
+        bzero(&content, sizeof(content));
+
+
         ret = read(*sockfd, reads, sizeof(reads));
         if (reads[0] == 'd') {
             printf("SERVER DISCONNECTED...\nProgram Exiting...\n");
@@ -25,40 +37,42 @@ void *readThread(int *sockfd) {
         } else if (ret > 0) {
             reads[ret] = '\0';
 
-            if (reads[0] == 'g' || reads[0] == 'f') {
-                char content[262144];
-                bzero(&content, sizeof(content));
-                int x, size = 0;
+            memcpy(command, &reads[0], sizeof(command));
+            memcpy(option, &reads[1], sizeof(option));
+            memcpy(size, &reads[21], sizeof(size));
+            memcpy(content, &reads[29], sizeof(content));
 
-                if (reads[0] == 'f')
+            //memcpy(&packet[0], &command[0], sizeof(command));
+
+            length = atoi(size);
+
+            if (command[0] == 'g' || command[0] == 'f') {
+
+                int x;
+
+                if (command[0] == 'f')
                     printf("Private ");
 
-                printf("File From: ");
-                for (x = 1; x < 21; x++) {
-                    printf("%c", reads[x]);
-                }
-                printf("\n");
+                printf("File From: %s\n", option);
 
-                for (x = 29; x < sizeof(reads); x++)
-                    content[x - 29] = reads[x];
+                FILE *f2write = fopen("file.jpg", "w");
 
-                for (x = 0; x < sizeof(content); x++)
-                    if (content[x] != '\0')
-                        size++;
+//                for(x = 0; x<length; x++)
+//                {
+//                    if (content[x] == '\00')
+//                    {
+//                        content[x] = '\n';
+//                    }
+//                }
+                printf("%d\n", length);
 
-                FILE *f2write = fopen("file.txt", "w");
-                fwrite(content, 1, size, f2write);
+                fwrite(&content, 1, length, f2write);
                 fclose(f2write);
+
+
             } else {
-                for (x = 1; x < 21; x++) {
-                    printf("%c", reads[x]);
-                }
-                printf(": ");
-                for (x = 29; x < sizeof(reads); x++) {
-                    printf("%c", reads[x]);
-                }
-                printf("\n");
-                ret = 0;
+
+                printf("%s: %s\n", option, content);
             }
         }
 
@@ -183,12 +197,22 @@ int main(int argc, char **argv) {
                         fseek(f2, 0, SEEK_END);
                         long length2 = ftell(f2);
                         fseek(f2, 0, SEEK_SET);
-                        fread(content, 1, length2, f2);
+
+
+
+
+                        sprintf(size, "%d", length2);
+
+                        char picture[length2];
+                        fread(picture, 1, length2, f2);
+                        memcpy(content, picture, length2);
+
+                        fread(content, 1, length2-1, f2);
                         fclose(f2);
 
                         ////file - test////
-//                        FILE *f2write = fopen("file.txt", "w");
-//                        fwrite(content, 1, length2, f2write);
+//                        FILE *f2write = fopen("file.jpg", "w");
+//                        fwrite(&content, 1, length2, f2write);
 //                        fclose(f2write);
 
                     } else {
@@ -292,6 +316,7 @@ int main(int argc, char **argv) {
         if (command[0] != 'z') {
             //content 262144
             packet[0] = command[0];
+
             for (x = 1; x < 21; x++) {
                 if (option[x - 1] == '\n')
                     packet[x] = '\0';
