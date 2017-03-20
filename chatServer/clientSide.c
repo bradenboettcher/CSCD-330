@@ -194,6 +194,7 @@ int main(int argc, char **argv) {
 
                     } else {
                         printf("\n-----------------File does not exist--------------\n");
+                        command[0] = 'z';
                     }
 
                     break;
@@ -227,6 +228,7 @@ int main(int argc, char **argv) {
 
                     } else {
                         printf("\n-----------------File does not exist--------------\n");
+                        command[0] = 'z';
                     }
 
 

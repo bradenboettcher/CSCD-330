@@ -27,7 +27,7 @@ struct Room
 int main(int argc, char ** argv)
 {
 	printf("::SERVER READY::\n");
-	int serverFD, ret;
+	int serverFD, ret, sent = 0;
 	int port = atoi(argv[1]);
 	struct sockaddr_in serverAddr;
 
@@ -290,6 +290,31 @@ switch(packet[0])
 						write(clientList[y].socket,packet,sizeof(packet));
 				break;
 	case 'f'	:	//commands.pFile(clinetList,packet);private file
+        for(x = 1; x < 21; x++)
+            option[x-1] = packet[x];
+        sent = 0;
+        for(x = 0; x < 10; x++)//for each client in the list
+        {
+            if(clientList[x].signedIn && strcmp(option,clientList[x].name) == 0)
+            {
+                int y;
+                for(y = 1; y < 21; y++)
+                    packet[y] = currentClient->name[y-1];
+                write(clientList[x].socket,packet,sizeof(packet));
+                sent = 1;
+            }
+        }
+        if(!sent)
+        {
+            snprintf(option,sizeof(option)+1,"SERVER");
+            snprintf(content,sizeof(content)+1,"User does not exist: type '/l' for a list of current users.");
+            for(x = 1; x < 21; x++)
+                packet[x] = option[x-1];
+            for(x = 29; x < sizeof(packet); x++)
+                packet[x] = content[x-29];
+            write(currentClient->socket,packet,sizeof(packet));
+        }
+
 				break;
 
 	case 'g'	:	for(x = 0;x < 20; x++)
@@ -516,7 +541,7 @@ switch(packet[0])
 	case 'w'	:	//printf("Whisper\n");
 				for(x = 1; x < 21; x++)
 					option[x-1] = packet[x];
-				int sent = 0;
+				sent = 0;
 				for(x = 0; x < 10; x++)//for each client in the list
 				{
 					if(clientList[x].signedIn && strcmp(option,clientList[x].name) == 0)
