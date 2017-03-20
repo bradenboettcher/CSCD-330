@@ -195,7 +195,6 @@ int main(int argc, char **argv) {
                     } else {
                         printf("\n-----------------File does not exist--------------\n");
                     }
-
                     break;
 
                 case 'g'   :
