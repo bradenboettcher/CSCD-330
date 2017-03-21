@@ -84,14 +84,6 @@ void *readThread(int *sockfd) {
                 if (f2write != NULL)
                     fclose(f2write);
 
-//This stuff works
-//                f2write = fopen(strcat(fileName, ".jpg"), "w");
-//
-//                //printf("%d\n", length);
-//
-//                fwrite(&content, 1, length, f2write);
-//                fclose(f2write);
-
 
             } else {
 
