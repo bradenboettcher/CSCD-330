@@ -21,6 +21,7 @@ void *readThread(int *sockfd) {
         char size[8];
         char content[262144];
         char fileName[20];
+        char fileType[4];
 
         bzero(&reads, sizeof(reads));
 
@@ -42,7 +43,14 @@ void *readThread(int *sockfd) {
             memcpy(command, &reads[0], sizeof(command));
             memcpy(option, &reads[1], sizeof(option));
             memcpy(size, &reads[21], sizeof(size));
-            memcpy(content, &reads[29], sizeof(content));
+
+            if (command[0] != 'i')
+                memcpy(content, &reads[29], sizeof(content));
+            else{
+                memcpy(fileType, &reads[29], sizeof(fileType));
+                memcpy(content, &reads[33], sizeof(content)-4);
+
+            }
 
             //memcpy(&packet[0], &command[0], sizeof(command));
 
@@ -71,7 +79,6 @@ void *readThread(int *sockfd) {
                     f2write = fopen(fileName, "r");
 
 
-
                     if (f2write == NULL) {
 
                         f2write = fopen(fileName, "w");
@@ -84,6 +91,36 @@ void *readThread(int *sockfd) {
                 if (f2write != NULL)
                     fclose(f2write);
 
+
+            } else if (command[0] == 'i') {
+
+                printf("File from: %s\n", option);
+
+
+                FILE *f2write = NULL;
+
+
+                for (x = 0; x < 100; x++) {
+
+                    char filePrefix[3];
+                    memcpy(filePrefix, &fileType[1], sizeof(filePrefix));
+
+                    sprintf(fileName, "%s%s%d%s", filePrefix,"_download_", x, fileType);
+
+
+                    //strcat(fileName, fileType);
+                    f2write = fopen(fileName, "r");
+
+
+                    if (f2write == NULL) {
+
+                        f2write = fopen(fileName, "w");
+                        fwrite(&content, 1, length, f2write);
+                        printf("File Downloaded: %s\n", fileName);
+                        x = 100;
+                    }
+
+                }
 
             } else {
 
@@ -132,6 +169,7 @@ int main(int argc, char **argv) {
     char content[262144];
     char packet[262173]; //the packet size will be the command + option + size + content (which will be the MAX size of a file).
     char filePath[100];
+    char fileType[4];
 
 
     char room1[2] = "X";
@@ -143,7 +181,8 @@ int main(int argc, char **argv) {
         bzero(&content, sizeof(content));
         bzero(&packet, sizeof(packet));
         bzero(&filePath, sizeof(filePath));
-
+        bzero(&fileType, sizeof(fileType));
+        FILE *f2;
         int x;
 
         char writes[262173];
@@ -224,7 +263,7 @@ int main(int argc, char **argv) {
                         if (filePath[x] == '\n')
                             filePath[x] = '\0';
 
-                    FILE *f2 = fopen(filePath, "r");
+                    f2 = fopen(filePath, "r");
 
 
                     ///////////////////////////////////check for null file////////////////////
@@ -235,9 +274,7 @@ int main(int argc, char **argv) {
 
                         sprintf(size, "%d", length2);
 
-                        char picture[length2];
-
-                        int lengthX = fread(content, 1, length2, f2);
+                        fread(content, 1, length2, f2);
                         fclose(f2);
 
 
@@ -252,6 +289,44 @@ int main(int argc, char **argv) {
 
                 case 'h'    ://////////////////////////////////////////////////////done
                     command[0] = 'h';//who's in my room?
+                    break;
+
+                case 'i'    ://////////////////////////////////////////////////////done
+                    command[0] = 'i';
+                    for (x = 0; x < sizeof(filePath); x++)
+                        filePath[x] = writes[x + 3];
+
+
+                    for (x = 0; x < sizeof(filePath); x++)
+                        if (filePath[x] == '\n')
+                            filePath[x] = '\0';
+
+                    f2 = fopen(filePath, "r");
+
+                    printf("Please enter file type: ");
+                    fgets(fileType, 10, stdin);
+
+
+
+                    ///////////////////////////////////check for null file////////////////////
+                    if (f2 != NULL) {
+                        fseek(f2, 0, SEEK_END);
+                        long length2 = ftell(f2);
+                        fseek(f2, 0, SEEK_SET);
+
+                        sprintf(size, "%d", length2);
+
+                        bzero(&writes, sizeof(writes));
+                        fread(writes, 1, length2, f2);
+                        fclose(f2);
+
+                        sprintf(content, "%s%s", fileType, writes);
+
+
+                    } else {
+                        printf("\n-----------------File does not exist--------------\n");
+                        command[0] = 'z';
+                    }
                     break;
 
                 case 'l'    ://////////////////////////////////////////////////////done
