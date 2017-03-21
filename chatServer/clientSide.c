@@ -20,6 +20,7 @@ void *readThread(int *sockfd) {
         char option[20];
         char size[8];
         char content[262144];
+        char fileName[20];
 
         bzero(&reads, sizeof(reads));
 
@@ -27,6 +28,7 @@ void *readThread(int *sockfd) {
         bzero(&option, sizeof(option));
         bzero(&size, sizeof(size));
         bzero(&content, sizeof(content));
+        bzero(&fileName, sizeof(fileName));
 
 
         ret = read(*sockfd, reads, sizeof(reads));
@@ -53,21 +55,42 @@ void *readThread(int *sockfd) {
                 if (command[0] == 'f')
                     printf("Private ");
 
-                printf("File From: %s\n", option);
+                printf("File from: %s\n", option);
 
-                FILE *f2write = fopen("file.jpg", "w");
 
-//                for(x = 0; x<length; x++)
-//                {
-//                    if (content[x] == '\00')
-//                    {
-//                        content[x] = '\n';
-//                    }
-//                }
-                printf("%d\n", length);
+                FILE *f2write = NULL;
 
-                fwrite(&content, 1, length, f2write);
-                fclose(f2write);
+
+                for (x = 0; x < 100; x++) {
+
+
+                    sprintf(fileName, "%s%d", "download_", x);
+
+
+                    strcat(fileName, ".jpg");
+                    f2write = fopen(fileName, "r");
+
+
+
+                    if (f2write == NULL) {
+
+                        f2write = fopen(fileName, "w");
+                        fwrite(&content, 1, length, f2write);
+                        printf("File Downloaded: %s\n", fileName);
+                        x = 100;
+                    }
+
+                }
+                if (f2write != NULL)
+                    fclose(f2write);
+
+//This stuff works
+//                f2write = fopen(strcat(fileName, ".jpg"), "w");
+//
+//                //printf("%d\n", length);
+//
+//                fwrite(&content, 1, length, f2write);
+//                fclose(f2write);
 
 
             } else {
@@ -142,9 +165,11 @@ int main(int argc, char **argv) {
                 case 'b'    ://////////////////////////////////////////////////////done
                     command[0] = 'b';//broadcast server wide
 
-                    for (u = 0; u < sizeof(writes) - 3; u++) {
-                        content[u] = writes[u + 3];
-                    }
+                    memcpy(content, &writes[3], sizeof(content));
+
+//                    for (u = 0; u < sizeof(writes) - 3; u++) {
+//                        content[u] = writes[u + 3];
+//                    }
                     break;
 
                 case 'c'    ://////////////////////////////////////////////////////done
@@ -167,14 +192,12 @@ int main(int argc, char **argv) {
                     for (x = 0; x < 24 && writes[x + 3] != ' '; x++)
                         option[x] = writes[x + 3];
 
-                    printf("name: %s\n X: %d\n", option, x);
-
-                    int w = x +=4;
+                    int w = x += 4;
 
                     for (; x < sizeof(filePath) + w && writes[x] != '\n'; x++)
                         filePath[(x - w)] = writes[x];
 
-                    printf("filename: %s", filePath);
+                    //printf("filename: %s", filePath);
 
 
                     FILE *f1 = fopen(filePath, "r");
@@ -245,6 +268,8 @@ int main(int argc, char **argv) {
 
                 case 'n'    ://////////////////////////////////////////////////////done
                     command[0] = 'n';//name registration
+
+
                     for (x = 0; x < 21 /*&& (writes[x + 3] != ' ' || writes[x + 3] != '\n')*/; x++)
                         option[x] = writes[x + 3];
                     break;
@@ -291,9 +316,7 @@ int main(int argc, char **argv) {
             /////////////////////////////////////No Command Given//////////////////////
         else {
             int u;
-
             command[0] = 'r';
-
 
             for (u = 0; u < sizeof(writes); u++) {
                 content[u] = writes[u];
@@ -324,9 +347,6 @@ int main(int argc, char **argv) {
                 packet[x] = content[x - 29];
             }
 
-//            for (x = 0; x < 262173; x++) {/////////////////////////////////////////PACKET PRINT
-//                printf("%c", packet[x]);
-//            }
             write(sockfd, packet, sizeof(packet));
         }//end If
 //////////////////////////////////////PACKET BUILT//////////////////////////////////////
