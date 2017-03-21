@@ -48,8 +48,8 @@ void *readThread(int *sockfd) {
                 memcpy(content, &reads[29], sizeof(content));
             else{
                 memcpy(fileType, &reads[29], sizeof(fileType));
-                memcpy(content, &reads[33], sizeof(content)-4);
-
+                memcpy(content, &reads[33], sizeof(content));
+                printf("\nfiletype: %s\n",fileType);
             }
 
             //memcpy(&packet[0], &command[0], sizeof(command));
@@ -57,8 +57,6 @@ void *readThread(int *sockfd) {
             length = atoi(size);
 
             if (command[0] == 'g' || command[0] == 'f') {
-
-                int x;
 
                 if (command[0] == 'f')
                     printf("Private ");
@@ -73,8 +71,6 @@ void *readThread(int *sockfd) {
 
 
                     sprintf(fileName, "%s%d", "download_", x);
-
-
                     strcat(fileName, ".jpg");
                     f2write = fopen(fileName, "r");
 
@@ -95,20 +91,17 @@ void *readThread(int *sockfd) {
             } else if (command[0] == 'i') {
 
                 printf("File from: %s\n", option);
-
+                char prefix[3];
+memcpy(prefix, &fileType[1], sizeof(prefix));
 
                 FILE *f2write = NULL;
 
 
                 for (x = 0; x < 100; x++) {
 
-                    char filePrefix[3];
-                    memcpy(filePrefix, &fileType[1], sizeof(filePrefix));
 
-                    sprintf(fileName, "%s%s%d%s", filePrefix,"_download_", x, fileType);
-
-
-                    //strcat(fileName, fileType);
+                    sprintf(fileName, "%s%s%d", prefix, "_download_", x);
+                    strcat(fileName, fileType);
                     f2write = fopen(fileName, "r");
 
 
@@ -121,6 +114,9 @@ void *readThread(int *sockfd) {
                     }
 
                 }
+                if (f2write != NULL)
+                    fclose(f2write);
+
 
             } else {
 
@@ -306,7 +302,9 @@ int main(int argc, char **argv) {
                     printf("Please enter file type: ");
                     fgets(fileType, 10, stdin);
 
-
+                    x = strlen(fileType)-1;
+                    if( fileType[x] == '\n')
+                        fileType[x] = '\0';
 
                     ///////////////////////////////////check for null file////////////////////
                     if (f2 != NULL) {
@@ -320,8 +318,9 @@ int main(int argc, char **argv) {
                         fread(writes, 1, length2, f2);
                         fclose(f2);
 
-                        sprintf(content, "%s%s", fileType, writes);
 
+                        memcpy(content, &fileType[0], sizeof(fileType));
+                        memcpy(&content[4], &writes, length2);
 
                     } else {
                         printf("\n-----------------File does not exist--------------\n");
